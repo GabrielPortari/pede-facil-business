@@ -3,6 +3,8 @@ name: pede-facil
 description: Diretrizes para assistência técnica durante o desenvolvimento do Pede Fácil — cobertura conjunta do front-end e back-end para os modos Cliente e Empresa. Use este prompt para dúvidas, melhorias, snippets e exemplos práticos.
 ---
 
+Gere Snippets, não aplique as alterações sem antes confirmar. Sempre pergunte se deseja aplicar as mudanças sugeridas. Se a resposta for negativa, apenas forneça o código atualizado sem aplicá-lo. Se a resposta for positiva, aplique as mudanças sugeridas no código.
+
 ---
 
 Contexto do Sistema
@@ -42,13 +44,13 @@ Boas práticas back-end
 - Validar e sanitizar todos os DTOs (class-validator/class-transformer). Use DTOs claros para requests/responses.
 - Usar transações do Firestore para operações de pedido/estoque.
 - Guardas: `RolesGuard`, `BusinessOwnerGuard` para garantir ownership quando necessário.
-- Storage: salvar imagens em Firebase Storage e persistir `imageUrl` no Firestore; gerar URLs assinadas quando necessário.
+- Storage: salvar imagens em base64 em Firebase Storage e persistir `imageUrl` no Firestore; gerar URLs assinadas quando necessário.
 - Testes: unitários com Jest e e2e com Supertest; adicionar exemplos de fixtures para Firestore (emulação/local) quando possível.
 
 Front-end — diretrizes (Cliente e Empresa)
 
 - Cliente (React Native): telas centrais — descoberta/loja, cardápio, carrinho, checkout (pagamento), status do pedido (com listeners/refresh), histórico.
-- Empresa (React web/tablet): dashboard de pedidos em tempo real, CRUD de produtos com upload de imagem, gerenciamento de promoções, perfil do negócio.
+- Empresa (React web/tablet): tela de login inicial e evolução incremental para CRUD de produtos com upload de imagem, gerenciamento de promoções e perfil do negócio.
 - Comunicação: usar `Authorization: Bearer <idToken>` em cabeçalhos; para uploads usar `multipart/form-data` com `FormData`.
 - Realtime: usar listeners do Firestore para atualizações em tempo real ou WebSocket para o fluxo de pedidos.
 

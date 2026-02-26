@@ -22,16 +22,13 @@ npm run lint
 ```text
 src/
 	features/
-		dashboard/
-			components/
-			hooks/
+		auth/
 			pages/
-			services/
 	shared/
 		lib/
 		ui/
-	App.jsx
-	main.jsx
+	App.tsx
+	main.tsx
 ```
 
 ## Padrão aplicado
@@ -40,4 +37,4 @@ src/
 - `shared/ui`: componentes reutilizáveis entre features.
 - `shared/lib`: utilitários puros (formatação, helpers).
 - `services`: comunicação com API e fontes de dados.
-- `hooks`: orquestração de estado e fluxo da feature.
+- `hooks`: orquestração de estado e fluxo da feature (quando necessário).
