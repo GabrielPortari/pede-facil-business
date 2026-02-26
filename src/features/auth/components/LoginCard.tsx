@@ -1,51 +1,52 @@
-import { useState } from 'react'
-import type { FormEvent } from 'react'
-import type { LoginCredentials } from '../types/auth.type'
+import { useState } from "react";
+import type { FormEvent } from "react";
+import type { LoginCredentials } from "../types/auth.type";
+import "./LoginCard.css";
 
 interface LoginCardProps {
-  onSubmit: (credentials: LoginCredentials) => void | Promise<void>
-  isLoading?: boolean
-  serverError?: string
+  onSubmit: (credentials: LoginCredentials) => void | Promise<void>;
+  isLoading?: boolean;
+  serverError?: string;
 }
 
 interface LoginTouchedState {
-  email: boolean
-  password: boolean
+  email: boolean;
+  password: boolean;
 }
 
 export function LoginCard({
   onSubmit,
   isLoading = false,
-  serverError = '',
+  serverError = "",
 }: LoginCardProps) {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [touched, setTouched] = useState<LoginTouchedState>({
     email: false,
     password: false,
-  })
+  });
 
   const emailError =
     touched.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-      ? 'Informe um e-mail válido.'
-      : ''
+      ? "Informe um e-mail válido."
+      : "";
 
   const passwordError =
     touched.password && password.length < 6
-      ? 'A senha deve ter pelo menos 6 caracteres.'
-      : ''
+      ? "A senha deve ter pelo menos 6 caracteres."
+      : "";
 
-  const hasErrors = Boolean(emailError || passwordError)
+  const hasErrors = Boolean(emailError || passwordError);
 
   function handleLogin(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setTouched({ email: true, password: true })
+    event.preventDefault();
+    setTouched({ email: true, password: true });
 
     if (hasErrors || !email || !password || isLoading) {
-      return
+      return;
     }
 
-    onSubmit({ email: email.trim(), password })
+    onSubmit({ email: email.trim(), password });
   }
 
   return (
@@ -65,7 +66,7 @@ export function LoginCard({
               onChange={(event) => setEmail(event.target.value)}
               onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
               aria-invalid={Boolean(emailError)}
-              aria-describedby={emailError ? 'email-error' : undefined}
+              aria-describedby={emailError ? "email-error" : undefined}
               required
             />
             {emailError && (
@@ -84,11 +85,9 @@ export function LoginCard({
               autoComplete="current-password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              onBlur={() =>
-                setTouched((prev) => ({ ...prev, password: true }))
-              }
+              onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
               aria-invalid={Boolean(passwordError)}
-              aria-describedby={passwordError ? 'password-error' : undefined}
+              aria-describedby={passwordError ? "password-error" : undefined}
               required
             />
             {passwordError && (
@@ -105,10 +104,10 @@ export function LoginCard({
           )}
 
           <button type="submit" disabled={isLoading || hasErrors}>
-            {isLoading ? 'Entrando...' : 'Entrar'}
+            {isLoading ? "Entrando..." : "Entrar"}
           </button>
         </form>
       </section>
     </main>
-  )
+  );
 }
