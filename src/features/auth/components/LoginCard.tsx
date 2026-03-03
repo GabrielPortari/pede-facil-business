@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { Link } from "react-router-dom";
 import type { LoginCredentials } from "../types/auth.type";
 import "./LoginCard.css";
 
@@ -106,6 +107,16 @@ export function LoginCard({
           <button type="submit" disabled={isLoading || hasErrors}>
             {isLoading ? "Entrando..." : "Entrar"}
           </button>
+
+          <footer className="login-card-footer" aria-label="Ações adicionais">
+            <Link to="/esqueci-minha-senha" className="forgot-password-link">
+              Esqueci minha senha
+            </Link>
+            <p>
+              Não possui uma conta?{" "}
+              <Link to="/registre-se">Registre-se agora</Link>
+            </p>
+          </footer>
         </form>
       </section>
     </main>

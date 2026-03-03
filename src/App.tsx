@@ -1,8 +1,31 @@
-import LoginPage from './features/auth/pages/LoginPage'
-import './App.css'
+import { Navigate, Route, Routes } from "react-router-dom";
+import { ProtectedRoute } from "./features/auth/components/ProtectedRoute";
+import ForgotPasswordPage from "./features/auth/pages/ForgotPasswordPage";
+import LoginPage from "./features/auth/pages/LoginPage";
+import RegisterPage from "./features/auth/pages/RegisterPage";
+import DashboardPage from "./features/dashboard/pages/DashboardPage";
+import LandingPage from "./features/public/pages/LandingPage";
+import "./App.css";
 
 function App() {
-  return <LoginPage />
+  return (
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/home" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/esqueci-minha-senha" element={<ForgotPasswordPage />} />
+      <Route path="/registre-se" element={<RegisterPage />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
 }
 
-export default App
+export default App;
