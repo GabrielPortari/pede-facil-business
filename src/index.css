@@ -1,4 +1,34 @@
 :root {
+  --pf-color-brand-300: #6dcfb2;
+  --pf-color-brand-500: #46b8be;
+  --pf-color-brand-600: #39a7d7;
+  --pf-color-brand-900: #0f4e72;
+  --pf-color-brand-700: #2f8bb6;
+  --pf-color-secondary-700: #35556a;
+
+  --pf-color-text-primary: #0f172a;
+  --pf-color-text-secondary: #3e647a;
+  --pf-color-border-soft: #b7dbe7;
+  --pf-color-surface-soft: #f1f9ff;
+  --pf-color-white: #ffffff;
+  --pf-color-muted: #cbd5e1;
+
+  --pf-color-success: #16a34a;
+  --pf-color-warning: #f59e0b;
+  --pf-color-error: #dc2626;
+  --pf-color-info: #0284c7;
+
+  --pf-gradient-main: linear-gradient(
+    180deg,
+    #6dcfb2 0%,
+    #46b8be 52%,
+    #39a7d7 100%
+  );
+  --pf-gradient-accent: linear-gradient(135deg, #46b8be 0%, #39a7d7 100%);
+
+  --pf-rgb-white: 255, 255, 255;
+  --pf-rgb-brand-900: 15, 78, 114;
+
   font-family:
     Inter,
     system-ui,
@@ -10,8 +40,8 @@
     sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color: #0f172a;
-  background-color: #f1f5f9;
+  color: var(--pf-color-text-primary);
+  background-color: var(--pf-color-surface-soft);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;

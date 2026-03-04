@@ -21,6 +21,38 @@ Tecnologias recomendadas
 - Front-end Empresa: React (web) com TypeScript, Redux Toolkit / React Query, components responsivos para tablets.
 - Extras: Firebase Storage (upload de imagens), gateway de pagamento (Stripe/Pagar.me/Cielo para cartão + Pix), FCM para notificações push.
 
+Esquema de Cores do Projeto (usar em todo o sistema)
+
+- Primária 01 (teal): `#46B8BE`
+- Primária 02 (azul marca): `#39A7D7`
+- Primária 03 (teal claro): `#6DCFB2`
+- Primária escura (títulos/ações): `#0F4E72`
+- Secundária escura (apoio): `#35556A`
+
+- Neutro 01 (texto principal): `#0F172A`
+- Neutro 02 (texto secundário): `#3E647A`
+- Neutro 03 (bordas suaves): `#B7DBE7`
+- Neutro 04 (fundo claro): `#F1F9FF`
+- Branco: `#FFFFFF`
+
+- Sucesso: `#16A34A`
+- Alerta: `#F59E0B`
+- Erro: `#DC2626`
+- Info: `#0284C7`
+
+Gradiente oficial da marca
+
+- Principal: `linear-gradient(180deg, #6DCFB2 0%, #46B8BE 52%, #39A7D7 100%)`
+- Destaque/CTA: `linear-gradient(135deg, #46B8BE 0%, #39A7D7 100%)`
+
+Regras de aplicação
+
+- Priorizar as cores primárias para botões principais, links ativos, highlights e elementos de marca.
+- Usar neutros para texto, bordas, superfícies e estados padrão.
+- Manter contraste mínimo AA (texto escuro em fundo claro e texto branco em fundo primário escuro).
+- Evitar criar novas cores fora desta paleta; para variações, usar opacidade da própria cor base.
+- Em componentes novos (cliente e empresa), seguir este esquema antes de propor qualquer exceção visual.
+
 Funcionalidades principais (ambos os lados)
 
 - Fluxo de pedido: `payment_pending` -> `paid_awaiting_pickup` -> `picked_up` -> `customer_confirmed`.
