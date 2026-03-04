@@ -1,4 +1,6 @@
 import type {
+  ForgotPasswordPayload,
+  ForgotPasswordResponse,
   LoginCredentials,
   LoginResponse,
   SignupBusinessPayload,
@@ -36,4 +38,20 @@ export async function signupBusinessRequest(
   }
 
   return response.json() as Promise<SignupBusinessResponse>;
+}
+
+export async function forgotPasswordRequest(
+  payload: ForgotPasswordPayload,
+): Promise<ForgotPasswordResponse> {
+  const response = await fetch("/api/auth/forgot-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error("Forgot password failed");
+  }
+
+  return response.json() as Promise<ForgotPasswordResponse>;
 }

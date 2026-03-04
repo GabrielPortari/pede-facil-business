@@ -37,10 +37,23 @@ export interface SignupBusinessResponse {
   [key: string]: unknown;
 }
 
+export interface ForgotPasswordPayload {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  message?: string;
+  [key: string]: unknown;
+}
+
 export type SubmitLoginResult =
   | { ok: true; data: LoginResponse }
   | { ok: false };
 
 export type SubmitSignupBusinessResult =
   | { ok: true; data: SignupBusinessResponse }
+  | { ok: false };
+
+export type SubmitForgotPasswordResult =
+  | { ok: true; data: ForgotPasswordResponse }
   | { ok: false };
