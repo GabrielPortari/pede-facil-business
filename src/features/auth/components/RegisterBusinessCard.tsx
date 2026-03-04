@@ -557,6 +557,9 @@ export function RegisterBusinessCard({
             <p>
               Já possui conta? <Link to="/login">Entrar</Link>
             </p>
+            <p>
+              <Link to="/">Voltar para página inicial</Link>
+            </p>
           </footer>
         </form>
       </section>

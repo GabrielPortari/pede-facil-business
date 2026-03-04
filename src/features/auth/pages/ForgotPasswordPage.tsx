@@ -75,6 +75,7 @@ export default function ForgotPasswordPage() {
 
           <footer className="forgot-password-footer">
             <Link to="/login">Voltar para o login</Link>
+            <Link to="/">Página inicial</Link>
           </footer>
         </form>
       </section>

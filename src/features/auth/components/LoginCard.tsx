@@ -116,6 +116,9 @@ export function LoginCard({
               Não possui uma conta?{" "}
               <Link to="/registre-se">Registre-se agora</Link>
             </p>
+            <p>
+              <Link to="/">Voltar para página inicial</Link>
+            </p>
           </footer>
         </form>
       </section>
