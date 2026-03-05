@@ -258,6 +258,53 @@
 
 .dashboard-operations {
   margin-top: 24px;
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 14px;
+}
+
+.operations-sidebar {
+  border: 1px solid var(--pf-color-border-soft);
+  border-radius: 12px;
+  background: rgba(var(--pf-rgb-white), 0.96);
+  padding: 14px;
+  height: fit-content;
+  position: sticky;
+  top: 16px;
+}
+
+.operations-sidebar h2 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--pf-color-brand-900);
+}
+
+.operations-sidebar nav {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.operations-menu-item {
+  border: 1px solid var(--pf-color-border-soft);
+  border-radius: 8px;
+  background: rgba(var(--pf-rgb-white), 1);
+  color: var(--pf-color-text-secondary);
+  padding: 9px 10px;
+  text-align: left;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.operations-menu-item.is-active {
+  border-color: var(--pf-color-brand-700);
+  color: var(--pf-color-brand-900);
+  background: rgba(var(--pf-rgb-white), 0.98);
+}
+
+.operations-content {
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -411,6 +458,19 @@
     align-items: stretch;
   }
 
+  .dashboard-operations {
+    grid-template-columns: 1fr;
+  }
+
+  .operations-sidebar {
+    position: static;
+  }
+
+  .operations-sidebar nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .actions-inline {
     width: 100%;
   }
@@ -418,5 +478,9 @@
   .dashboard-action-button,
   .dashboard-danger-button {
     width: 100%;
+  }
+
+  .operations-menu-item {
+    text-align: center;
   }
 }

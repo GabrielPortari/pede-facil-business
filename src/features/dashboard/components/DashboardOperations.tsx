@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 const ORDER_STATUS_SUMMARY = [
   { label: "Aguardando pagamento", count: 4 },
   { label: "Pagos e aguardando entrega", count: 7 },
@@ -93,119 +95,165 @@ function formatCentsToBrl(amountInCents: number): string {
   }).format(amountInCents / 100);
 }
 
+const OPERATION_MENU = [
+  { key: "orders-status", label: "Status dos pedidos" },
+  { key: "finalized-report", label: "Relatório de finalizados" },
+  { key: "order-items", label: "Itens dos pedidos" },
+  { key: "products", label: "Produtos cadastrados" },
+  { key: "promotions", label: "Promoções ativas" },
+] as const;
+
+type OperationKey = (typeof OPERATION_MENU)[number]["key"];
+
 export function DashboardOperations() {
+  const [selectedOperation, setSelectedOperation] =
+    useState<OperationKey>("orders-status");
+
   return (
     <section className="dashboard-operations" aria-label="Operação">
-      <article className="dashboard-panel">
-        <h2>Informação sobre pedidos</h2>
-        <div className="status-grid">
-          {ORDER_STATUS_SUMMARY.map((status) => (
-            <div key={status.label} className="status-card">
-              <span>{status.label}</span>
-              <strong>{status.count}</strong>
-            </div>
+      <aside className="operations-sidebar" aria-label="Menu de operações">
+        <h2>Operações</h2>
+        <nav>
+          {OPERATION_MENU.map((menuItem) => (
+            <button
+              key={menuItem.key}
+              type="button"
+              className={`operations-menu-item${
+                selectedOperation === menuItem.key ? " is-active" : ""
+              }`}
+              onClick={() => setSelectedOperation(menuItem.key)}
+            >
+              {menuItem.label}
+            </button>
           ))}
-        </div>
-      </article>
+        </nav>
+      </aside>
 
-      <article className="dashboard-panel">
-        <h2>Relatório de pedidos finalizados</h2>
-        <div className="finalized-grid">
-          {FINALIZED_ORDERS.map((order) => (
-            <div key={order.id} className="finalized-card">
-              <h3>{order.id}</h3>
-              <p>Quem pediu: {order.customer}</p>
-              <ul>
-                {order.items.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-              <strong>Total: {formatCentsToBrl(order.totalInCents)}</strong>
-            </div>
-          ))}
-        </div>
-      </article>
-
-      <article className="dashboard-panel">
-        <h2>Itens em pedidos realizados</h2>
-        <div className="details-list">
-          {ORDER_ITEMS_DETAILS.map((order) => (
-            <div key={order.orderId} className="details-card">
-              <div className="details-header">
-                <div>
-                  <h3>{order.orderId}</h3>
-                  <p>Cliente: {order.customer}</p>
+      <div className="operations-content">
+        {selectedOperation === "orders-status" && (
+          <article className="dashboard-panel">
+            <h2>Informação sobre pedidos</h2>
+            <div className="status-grid">
+              {ORDER_STATUS_SUMMARY.map((status) => (
+                <div key={status.label} className="status-card">
+                  <span>{status.label}</span>
+                  <strong>{status.count}</strong>
                 </div>
-                <button type="button" className="dashboard-action-button">
-                  Ver itens do pedido
-                </button>
-              </div>
-              <ul>
-                {order.items.map((item) => (
-                  <li key={`${order.orderId}-${item.name}`}>
-                    {item.quantity}x {item.name} ·{" "}
-                    {formatCentsToBrl(item.unitPriceInCents)}
-                  </li>
-                ))}
-              </ul>
+              ))}
             </div>
-          ))}
-        </div>
-      </article>
+          </article>
+        )}
 
-      <article className="dashboard-panel">
-        <h2>Produtos cadastrados</h2>
-        <div className="details-list">
-          {REGISTERED_PRODUCTS.map((product) => (
-            <div key={product.id} className="details-card">
-              <div className="details-header">
-                <div>
-                  <h3>{product.name}</h3>
+        {selectedOperation === "finalized-report" && (
+          <article className="dashboard-panel">
+            <h2>Relatório de pedidos finalizados</h2>
+            <div className="finalized-grid">
+              {FINALIZED_ORDERS.map((order) => (
+                <div key={order.id} className="finalized-card">
+                  <h3>{order.id}</h3>
+                  <p>Quem pediu: {order.customer}</p>
+                  <ul>
+                    {order.items.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                  <strong>Total: {formatCentsToBrl(order.totalInCents)}</strong>
+                </div>
+              ))}
+            </div>
+          </article>
+        )}
+
+        {selectedOperation === "order-items" && (
+          <article className="dashboard-panel">
+            <h2>Itens em pedidos realizados</h2>
+            <div className="details-list">
+              {ORDER_ITEMS_DETAILS.map((order) => (
+                <div key={order.orderId} className="details-card">
+                  <div className="details-header">
+                    <div>
+                      <h3>{order.orderId}</h3>
+                      <p>Cliente: {order.customer}</p>
+                    </div>
+                    <button type="button" className="dashboard-action-button">
+                      Ver itens do pedido
+                    </button>
+                  </div>
+                  <ul>
+                    {order.items.map((item) => (
+                      <li key={`${order.orderId}-${item.name}`}>
+                        {item.quantity}x {item.name} ·{" "}
+                        {formatCentsToBrl(item.unitPriceInCents)}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </article>
+        )}
+
+        {selectedOperation === "products" && (
+          <article className="dashboard-panel">
+            <h2>Produtos cadastrados</h2>
+            <div className="details-list">
+              {REGISTERED_PRODUCTS.map((product) => (
+                <div key={product.id} className="details-card">
+                  <div className="details-header">
+                    <div>
+                      <h3>{product.name}</h3>
+                      <p>
+                        {product.id} · {formatCentsToBrl(product.priceInCents)}{" "}
+                        · Estoque: {product.stock}
+                      </p>
+                    </div>
+                    <div className="actions-inline">
+                      <button type="button" className="dashboard-action-button">
+                        Atualizar
+                      </button>
+                      <button type="button" className="dashboard-danger-button">
+                        Remover
+                      </button>
+                    </div>
+                  </div>
                   <p>
-                    {product.id} · {formatCentsToBrl(product.priceInCents)} ·
-                    Estoque: {product.stock}
+                    Status: {product.available ? "Disponível" : "Indisponível"}
                   </p>
                 </div>
-                <div className="actions-inline">
-                  <button type="button" className="dashboard-action-button">
-                    Atualizar
-                  </button>
-                  <button type="button" className="dashboard-danger-button">
-                    Remover
-                  </button>
-                </div>
-              </div>
-              <p>Status: {product.available ? "Disponível" : "Indisponível"}</p>
+              ))}
             </div>
-          ))}
-        </div>
-      </article>
+          </article>
+        )}
 
-      <article className="dashboard-panel">
-        <h2>Promoções ativas</h2>
-        <div className="details-list">
-          {ACTIVE_PROMOTIONS.map((promotion) => (
-            <div key={promotion.id} className="details-card">
-              <div className="details-header">
-                <div>
-                  <h3>{promotion.productName}</h3>
-                  <p>
-                    {promotion.typeLabel} · Desconto: {promotion.discountLabel}
-                  </p>
+        {selectedOperation === "promotions" && (
+          <article className="dashboard-panel">
+            <h2>Promoções ativas</h2>
+            <div className="details-list">
+              {ACTIVE_PROMOTIONS.map((promotion) => (
+                <div key={promotion.id} className="details-card">
+                  <div className="details-header">
+                    <div>
+                      <h3>{promotion.productName}</h3>
+                      <p>
+                        {promotion.typeLabel} · Desconto:{" "}
+                        {promotion.discountLabel}
+                      </p>
+                    </div>
+                    <div className="actions-inline">
+                      <button type="button" className="dashboard-action-button">
+                        Atualizar
+                      </button>
+                      <button type="button" className="dashboard-danger-button">
+                        Remover
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div className="actions-inline">
-                  <button type="button" className="dashboard-action-button">
-                    Atualizar
-                  </button>
-                  <button type="button" className="dashboard-danger-button">
-                    Remover
-                  </button>
-                </div>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </article>
+          </article>
+        )}
+      </div>
     </section>
   );
 }
