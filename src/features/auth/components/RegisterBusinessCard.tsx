@@ -31,6 +31,76 @@ interface RegisterTouchedState {
   zipcode: boolean;
 }
 
+function formatCnpjInput(rawValue: string): string {
+  const digits = rawValue.replace(/\D/g, "").slice(0, 14);
+
+  const part1 = digits.slice(0, 2);
+  const part2 = digits.slice(2, 5);
+  const part3 = digits.slice(5, 8);
+  const part4 = digits.slice(8, 12);
+  const part5 = digits.slice(12, 14);
+
+  let formatted = part1;
+  if (part2) formatted += `.${part2}`;
+  if (part3) formatted += `.${part3}`;
+  if (part4) formatted += `/${part4}`;
+  if (part5) formatted += `-${part5}`;
+
+  return formatted;
+}
+
+function formatPhoneInput(rawValue: string): string {
+  let digits = rawValue.replace(/\D/g, "");
+
+  // If the user pastes +55, keep only local BR number for input mask.
+  if (digits.startsWith("55") && digits.length > 11) {
+    digits = digits.slice(2);
+  }
+
+  digits = digits.slice(0, 11);
+
+  const ddd = digits.slice(0, 2);
+  const prefix = digits.length > 10 ? digits.slice(2, 7) : digits.slice(2, 6);
+  const suffix = digits.length > 10 ? digits.slice(7, 11) : digits.slice(6, 10);
+
+  if (!ddd) {
+    return "";
+  }
+
+  let formatted = `(${ddd}`;
+  if (ddd.length === 2) {
+    formatted += ")";
+  }
+  if (prefix) {
+    formatted += ` ${prefix}`;
+  }
+  if (suffix) {
+    formatted += `-${suffix}`;
+  }
+
+  return formatted;
+}
+
+function formatZipcodeInput(rawValue: string): string {
+  const digits = rawValue.replace(/\D/g, "").slice(0, 8);
+
+  const part1 = digits.slice(0, 5);
+  const part2 = digits.slice(5, 8);
+
+  if (!part2) {
+    return part1;
+  }
+
+  return `${part1}-${part2}`;
+}
+
+function formatStateInput(rawValue: string): string {
+  return rawValue
+    .replace(/[^A-Za-z]/g, "")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
 export function RegisterBusinessCard({
   onSubmit,
   isLoading = false,
@@ -73,6 +143,7 @@ export function RegisterBusinessCard({
   });
 
   const cnpjDigits = cnpj.replace(/\D/g, "");
+  const contactDigits = contact.replace(/\D/g, "");
   const isNameInvalid = !name.trim();
   const isLegalNameInvalid = !legalName.trim();
   const isCnpjInvalid = cnpjDigits.length !== 14;
@@ -80,7 +151,8 @@ export function RegisterBusinessCard({
   const isWebsiteInvalid =
     Boolean(website.trim()) && !/^https?:\/\/.+/.test(website.trim());
 
-  const isContactInvalid = !/^\+55\d{10,11}$/.test(contact.trim());
+  const isContactInvalid =
+    contactDigits.length < 10 || contactDigits.length > 11;
   const isEmailInvalid = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isPasswordInvalid = password.length < 6;
   const isConfirmPasswordInvalid =
@@ -108,7 +180,9 @@ export function RegisterBusinessCard({
       : "";
 
   const contactError =
-    touched.contact && isContactInvalid ? "Use o formato +55XXXXXXXXXXX." : "";
+    touched.contact && isContactInvalid
+      ? "Informe um telefone com DDD (10 ou 11 dígitos)."
+      : "";
 
   const emailError =
     touched.email && isEmailInvalid ? "Informe um e-mail válido." : "";
@@ -165,7 +239,7 @@ export function RegisterBusinessCard({
       neighborhood: neighborhood.trim(),
       city: city.trim(),
       state: state.trim().toUpperCase(),
-      zipcode: zipcode.trim(),
+      zipcode: zipcode.replace(/\D/g, ""),
     };
   }
 
@@ -215,7 +289,7 @@ export function RegisterBusinessCard({
       cnpj: cnpjDigits,
       logoUrl: logoUrl.trim() || undefined,
       website: website.trim() || undefined,
-      contact: contact.trim(),
+      contact: `+55${contactDigits}`,
       email: email.trim(),
       password,
       address: buildAddressPayload(),
@@ -286,7 +360,10 @@ export function RegisterBusinessCard({
                 type="text"
                 placeholder="00.000.000/0000-00"
                 value={cnpj}
-                onChange={(event) => setCnpj(event.target.value)}
+                inputMode="numeric"
+                onChange={(event) =>
+                  setCnpj(formatCnpjInput(event.target.value))
+                }
                 onBlur={() => setTouched((prev) => ({ ...prev, cnpj: true }))}
                 aria-invalid={Boolean(cnpjError)}
                 aria-describedby={cnpjError ? "cnpj-error" : undefined}
@@ -321,9 +398,12 @@ export function RegisterBusinessCard({
                 id="contact"
                 name="contact"
                 type="tel"
-                placeholder="+5511999999999"
+                placeholder="(11) 99999-9999"
                 value={contact}
-                onChange={(event) => setContact(event.target.value)}
+                inputMode="tel"
+                onChange={(event) =>
+                  setContact(formatPhoneInput(event.target.value))
+                }
                 onBlur={() =>
                   setTouched((prev) => ({ ...prev, contact: true }))
                 }
@@ -509,7 +589,9 @@ export function RegisterBusinessCard({
                 type="text"
                 maxLength={2}
                 value={state}
-                onChange={(event) => setState(event.target.value)}
+                onChange={(event) =>
+                  setState(formatStateInput(event.target.value))
+                }
                 onBlur={() => setTouched((prev) => ({ ...prev, state: true }))}
                 aria-invalid={Boolean(stateError)}
                 aria-describedby={stateError ? "state-error" : undefined}
@@ -526,7 +608,10 @@ export function RegisterBusinessCard({
                 type="text"
                 placeholder="00000-000"
                 value={zipcode}
-                onChange={(event) => setZipcode(event.target.value)}
+                inputMode="numeric"
+                onChange={(event) =>
+                  setZipcode(formatZipcodeInput(event.target.value))
+                }
                 onBlur={() =>
                   setTouched((prev) => ({ ...prev, zipcode: true }))
                 }
