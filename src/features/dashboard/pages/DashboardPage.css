@@ -74,8 +74,29 @@
   cursor: pointer;
 }
 
+.dashboard-secondary-button {
+  border: 1px solid var(--pf-color-border-soft);
+  background: rgba(var(--pf-rgb-white), 1);
+  color: var(--pf-color-text-secondary);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dashboard-secondary-button:hover {
+  border-color: var(--pf-color-brand-700);
+  color: var(--pf-color-brand-900);
+}
+
 .dashboard-primary-button:disabled,
 .dashboard-form button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.dashboard-secondary-button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }

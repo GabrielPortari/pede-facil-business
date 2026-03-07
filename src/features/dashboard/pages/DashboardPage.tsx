@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   DashboardHeader,
   DashboardOperations,
@@ -86,6 +87,7 @@ const MOCK_REGISTERED_PRODUCTS = [
 ];
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
 
@@ -281,6 +283,11 @@ export default function DashboardPage() {
     }
   }
 
+  function handleLogout() {
+    localStorage.removeItem("access_token");
+    navigate("/login", { replace: true });
+  }
+
   async function handlePromotionSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsPromotionSubmitted(true);
@@ -329,6 +336,7 @@ export default function DashboardPage() {
       <DashboardHeader
         onOpenProductModal={() => setIsProductModalOpen(true)}
         onOpenPromotionModal={() => setIsPromotionModalOpen(true)}
+        onLogout={handleLogout}
       />
 
       <DashboardSummary />
