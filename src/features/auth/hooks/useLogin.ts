@@ -1,30 +1,40 @@
-import { useState } from 'react'
-import { loginRequest } from '../services/authService'
-import type { LoginCredentials, SubmitLoginResult } from '../types/auth.type'
+import { useState } from "react";
+import { loginRequest } from "../services/authService";
+import type { LoginCredentials, SubmitLoginResult } from "../types/auth.type";
+import { ServiceRequestError } from "../../../shared/lib/serviceRequest";
 
 export function useLogin() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [serverError, setServerError] = useState('')
+  const [isLoading, setIsLoading] = useState(false);
+  const [serverError, setServerError] = useState("");
 
   async function submitLogin(
     credentials: LoginCredentials,
   ): Promise<SubmitLoginResult> {
     try {
-      setIsLoading(true)
-      setServerError('')
+      setIsLoading(true);
+      setServerError("");
 
-      const result = await loginRequest(credentials)
+      const result = await loginRequest(credentials);
+      localStorage.setItem("access_token", result.accessToken);
 
-      localStorage.setItem('access_token', result.accessToken)
+      return { ok: true, data: result };
+    } catch (error) {
+      console.error("[useLogin] Login failed", {
+        email: credentials.email,
+        error,
+      });
 
-      return { ok: true, data: result }
-    } catch {
-      setServerError('Não foi possível entrar. Verifique seus dados.')
-      return { ok: false }
+      if (error instanceof ServiceRequestError) {
+        setServerError(error.message);
+      } else {
+        setServerError("Não foi possível entrar. Verifique seus dados.");
+      }
+
+      return { ok: false };
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
-  return { isLoading, serverError, submitLogin }
+  return { isLoading, serverError, submitLogin };
 }

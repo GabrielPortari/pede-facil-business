@@ -9,7 +9,6 @@ export default function LoginPage() {
 
   async function handleLogin(formData: LoginCredentials): Promise<void> {
     const result = await submitLogin(formData);
-
     if (result.ok) {
       navigate("/dashboard");
     }
@@ -22,7 +21,7 @@ export default function LoginPage() {
 
   return (
     <LoginCard
-      onSubmit={skipLogin}
+      onSubmit={handleLogin}
       isLoading={isLoading}
       serverError={serverError}
     />
