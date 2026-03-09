@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
-import { getStoredAccessToken } from "../../../shared/state/authSession";
+import {
+  getStoredAccessToken,
+  isAuthenticatedSession,
+} from "../../../shared/state/authSession";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -8,8 +11,9 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const token = getStoredAccessToken();
+  const hasAuthenticatedSession = isAuthenticatedSession();
 
-  if (!token) {
+  if (!token && !hasAuthenticatedSession) {
     return <Navigate to="/login" replace />;
   }
 

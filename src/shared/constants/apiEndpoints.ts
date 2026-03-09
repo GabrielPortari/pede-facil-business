@@ -8,7 +8,8 @@ export const API_ENDPOINTS = {
     recoverPassword: `${baseUrl}/auth/recover-password`,
   },
   products: {
-    create: `${baseUrl}/products`,
+    createByBusiness: (businessId: string) =>
+      `${baseUrl}/business/${businessId}/products`,
     promotion: (productId: string) =>
       `${baseUrl}/products/${productId}/promotion`,
   },

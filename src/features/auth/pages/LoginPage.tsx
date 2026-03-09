@@ -2,7 +2,7 @@ import { LoginCard } from "../components/LoginCard";
 import { useLogin } from "../hooks/useLogin";
 import type { LoginCredentials } from "../types/auth.type";
 import { useNavigate } from "react-router-dom";
-import { setStoredAccessToken } from "../../../shared/state/authSession";
+import { setAuthSession } from "../../../shared/state/authSession";
 
 export default function LoginPage() {
   const { isLoading, serverError, submitLogin } = useLogin();
@@ -16,7 +16,7 @@ export default function LoginPage() {
   }
 
   function skipLogin() {
-    setStoredAccessToken("fake-token");
+    setAuthSession({ accessToken: "fake-token", businessId: "dev-business" });
     navigate("/dashboard");
   }
 

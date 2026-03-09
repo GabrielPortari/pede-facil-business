@@ -26,7 +26,7 @@ export interface SignupBusinessPayload {
 }
 
 export interface LoginResponse {
-  accessToken: string;
+  accessToken?: string;
   [key: string]: unknown;
 }
 

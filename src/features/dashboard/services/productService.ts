@@ -6,12 +6,15 @@ import type {
 } from "../types/product.type";
 import { API_ENDPOINTS } from "../../../shared/constants/apiEndpoints";
 import { serviceRequest } from "../../../shared/lib/serviceRequest";
+import { getLoggedBusinessIdOrThrow } from "../../../shared/state/authSession";
 
 export async function createProductRequest(
   payload: CreateProductPayload,
 ): Promise<CreateProductResponse> {
+  const businessId = getLoggedBusinessIdOrThrow();
+
   return serviceRequest<CreateProductResponse, CreateProductPayload>(
-    API_ENDPOINTS.products.create,
+    API_ENDPOINTS.products.createByBusiness(businessId),
     {
       method: "POST",
       body: payload,

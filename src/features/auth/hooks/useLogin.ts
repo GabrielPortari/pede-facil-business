@@ -2,7 +2,12 @@ import { useState } from "react";
 import { loginRequest } from "../services/authService";
 import type { LoginCredentials, SubmitLoginResult } from "../types/auth.type";
 import { ServiceRequestError } from "../../../shared/lib/serviceRequest";
-import { setStoredAccessToken } from "../../../shared/state/authSession";
+import {
+  getAccessTokenFromNestedAuthPayload,
+  getBusinessIdFromAuthPayload,
+  refreshAccessToken,
+  setAuthSession,
+} from "../../../shared/state/authSession";
 
 export function useLogin() {
   const [isLoading, setIsLoading] = useState(false);
@@ -16,7 +21,16 @@ export function useLogin() {
       setServerError("");
 
       const result = await loginRequest(credentials);
-      setStoredAccessToken(result.accessToken);
+      const accessTokenFromResponse =
+        getAccessTokenFromNestedAuthPayload(result);
+      const accessToken =
+        accessTokenFromResponse ?? (await refreshAccessToken(true));
+      const businessId = getBusinessIdFromAuthPayload(result, accessToken);
+
+      setAuthSession({
+        accessToken,
+        businessId,
+      });
 
       return { ok: true, data: result };
     } catch (error) {
