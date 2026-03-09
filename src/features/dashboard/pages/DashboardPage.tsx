@@ -11,6 +11,7 @@ import {
 import { useCreateProduct } from "../hooks/useCreateProduct";
 import { useUpdateProductPromotion } from "../hooks/useUpdateProductPromotion";
 import type { PromotionType } from "../types/product.type";
+import { clearStoredAuthSession } from "../../../shared/state/authSession";
 import "./DashboardPage.css";
 
 function formatPriceInput(rawValue: string): string {
@@ -284,7 +285,7 @@ export default function DashboardPage() {
   }
 
   function handleLogout() {
-    localStorage.removeItem("access_token");
+    clearStoredAuthSession();
     navigate("/login", { replace: true });
   }
 
