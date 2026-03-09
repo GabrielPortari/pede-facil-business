@@ -40,7 +40,7 @@ export async function forgotPasswordRequest(
   payload: ForgotPasswordPayload,
 ): Promise<ForgotPasswordResponse> {
   return serviceRequest<ForgotPasswordResponse, ForgotPasswordPayload>(
-    API_ENDPOINTS.auth.forgotPassword,
+    API_ENDPOINTS.auth.recoverPassword,
     {
       method: "POST",
       body: payload,

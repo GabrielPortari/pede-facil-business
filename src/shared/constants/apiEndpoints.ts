@@ -4,7 +4,7 @@ export const API_ENDPOINTS = {
   auth: {
     login: `${baseUrl}/auth/login`,
     signupBusiness: `${baseUrl}/auth/signup/business`,
-    forgotPassword: `${baseUrl}/auth/forgot-password`,
+    recoverPassword: `${baseUrl}/auth/recover-password`,
   },
   products: {
     create: `${baseUrl}/products`,
