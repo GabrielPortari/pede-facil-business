@@ -1,10 +1,9 @@
 const OPERATION_MENU = [
   { key: "overview", label: "Visão geral" },
-  { key: "orders-status", label: "Status dos pedidos" },
-  { key: "finalized-report", label: "Relatório de finalizados" },
-  { key: "order-items", label: "Itens dos pedidos" },
+  { key: "orders", label: "Pedidos" },
   { key: "products", label: "Produtos cadastrados" },
-  { key: "promotions", label: "Promoções ativas" },
+  { key: "promotions", label: "Promoções" },
+  { key: "order-info", label: "Informação de pedidos" },
 ] as const;
 
 export function DashboardOperations() {
