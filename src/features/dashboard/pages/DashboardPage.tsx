@@ -1,6 +1,5 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   DashboardHeader,
   DashboardOperations,
@@ -11,7 +10,6 @@ import {
 import { useCreateProduct } from "../hooks/useCreateProduct";
 import { useUpdateProductPromotion } from "../hooks/useUpdateProductPromotion";
 import type { PromotionType } from "../types/product.type";
-import { clearStoredAuthSession } from "../../../shared/state/authSession";
 import "./DashboardPage.css";
 
 function formatPriceInput(rawValue: string): string {
@@ -88,7 +86,6 @@ const MOCK_REGISTERED_PRODUCTS = [
 ];
 
 export default function DashboardPage() {
-  const navigate = useNavigate();
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
 
@@ -284,11 +281,6 @@ export default function DashboardPage() {
     }
   }
 
-  function handleLogout() {
-    clearStoredAuthSession();
-    navigate("/login", { replace: true });
-  }
-
   async function handlePromotionSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsPromotionSubmitted(true);
@@ -337,7 +329,6 @@ export default function DashboardPage() {
       <DashboardHeader
         onOpenProductModal={() => setIsProductModalOpen(true)}
         onOpenPromotionModal={() => setIsPromotionModalOpen(true)}
-        onLogout={handleLogout}
       />
 
       <DashboardSummary />

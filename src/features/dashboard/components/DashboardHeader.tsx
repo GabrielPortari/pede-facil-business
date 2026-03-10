@@ -1,13 +1,11 @@
 interface DashboardHeaderProps {
   onOpenProductModal: () => void;
   onOpenPromotionModal: () => void;
-  onLogout: () => void;
 }
 
 export function DashboardHeader({
   onOpenProductModal,
   onOpenPromotionModal,
-  onLogout,
 }: DashboardHeaderProps) {
   return (
     <section className="dashboard-header">
@@ -17,13 +15,6 @@ export function DashboardHeader({
           <p>Gerencie seu negócio e cadastre novos produtos.</p>
         </div>
         <div className="dashboard-header-actions">
-          <button
-            type="button"
-            className="dashboard-secondary-button"
-            onClick={onLogout}
-          >
-            Sair
-          </button>
           <button
             type="button"
             className="dashboard-primary-button"

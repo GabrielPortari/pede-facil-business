@@ -314,6 +314,29 @@ function tryParseJson(value: string): unknown {
   }
 }
 
+function getBackendMessage(responseBody: unknown): string | null {
+  if (!responseBody || typeof responseBody !== "object") {
+    return null;
+  }
+
+  const message = (responseBody as { message?: unknown }).message;
+
+  if (typeof message === "string" && message.trim()) {
+    return message.trim();
+  }
+
+  if (Array.isArray(message)) {
+    const parsedMessage = message
+      .filter((item) => typeof item === "string")
+      .join(" | ")
+      .trim();
+
+    return parsedMessage || null;
+  }
+
+  return null;
+}
+
 export function getStoredAccessToken(): string | null {
   return localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY)?.trim() || null;
 }
@@ -427,6 +450,59 @@ export function getLoggedBusinessIdOrThrow(): string {
   return businessId;
 }
 
+export async function fetchAuthenticatedBusiness(): Promise<unknown> {
+  const makeRequest = async (accessToken: string | null) =>
+    fetch(API_ENDPOINTS.auth.me, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      },
+      credentials: "include",
+    });
+
+  let accessToken = getStoredAccessToken();
+  let response = await makeRequest(accessToken);
+  let rawBody = await response.text();
+  let parsedBody = tryParseJson(rawBody);
+
+  if (response.status === 401 || response.status === 403) {
+    const refreshedAccessToken = await refreshAccessToken(true);
+
+    if (refreshedAccessToken) {
+      accessToken = refreshedAccessToken;
+      response = await makeRequest(accessToken);
+      rawBody = await response.text();
+      parsedBody = tryParseJson(rawBody);
+    }
+  }
+
+  if (!response.ok) {
+    const backendMessage = getBackendMessage(parsedBody);
+    const error = new Error(
+      backendMessage ??
+        `Failed to fetch authenticated business (${response.status})`,
+    ) as Error & { status?: number; responseBody?: unknown };
+
+    error.status = response.status;
+    error.responseBody = parsedBody;
+
+    throw error;
+  }
+
+  const resolvedBusinessId =
+    getBusinessIdFromAuthPayload(parsedBody, accessToken) ??
+    getStoredBusinessId();
+
+  if (resolvedBusinessId) {
+    setStoredBusinessId(resolvedBusinessId);
+  }
+
+  setSessionActive(true);
+
+  return parsedBody;
+}
+
 async function requestRefreshAccessToken(): Promise<string | null> {
   const currentAccessToken = getStoredAccessToken();
 
@@ -494,6 +570,7 @@ export async function initializeAuthSession(): Promise<void> {
 
   try {
     await refreshAccessToken();
+    await fetchAuthenticatedBusiness();
   } catch {
     // Keep current token on startup failures; requests can retry/refresh later.
   }
