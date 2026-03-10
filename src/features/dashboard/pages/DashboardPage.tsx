@@ -1,16 +1,13 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import {
-  DashboardHeader,
   DashboardOperations,
-  DashboardSummary,
   ProductModal,
   PromotionModal,
 } from "../components";
 import { useCreateProduct } from "../hooks/useCreateProduct";
 import { useUpdateProductPromotion } from "../hooks/useUpdateProductPromotion";
 import type { PromotionType } from "../types/product.type";
-import { fetchAuthenticatedBusiness } from "../../../shared/state/authSession";
 import "./DashboardPage.css";
 
 function formatPriceInput(rawValue: string): string {
@@ -107,8 +104,6 @@ export default function DashboardPage() {
   const [usePromotionStock, setUsePromotionStock] = useState(false);
   const [promotionStock, setPromotionStock] = useState("");
   const [isPromotionSubmitted, setIsPromotionSubmitted] = useState(false);
-  const [isDebugAuthMeLoading, setIsDebugAuthMeLoading] = useState(false);
-  const [authMeDebugResponse, setAuthMeDebugResponse] = useState("");
 
   const {
     isLoading,
@@ -327,54 +322,8 @@ export default function DashboardPage() {
     }
   }
 
-  async function handleDebugAuthMe(): Promise<void> {
-    setIsDebugAuthMeLoading(true);
-
-    try {
-      const response = await fetchAuthenticatedBusiness();
-      setAuthMeDebugResponse(JSON.stringify(response, null, 2));
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Falha ao consultar /auth/me.";
-
-      const responseBody =
-        typeof error === "object" && error !== null && "responseBody" in error
-          ? (error as { responseBody?: unknown }).responseBody
-          : null;
-
-      setAuthMeDebugResponse(
-        JSON.stringify(
-          {
-            error: errorMessage,
-            responseBody,
-          },
-          null,
-          2,
-        ),
-      );
-    } finally {
-      setIsDebugAuthMeLoading(false);
-    }
-  }
-
   return (
     <main className="dashboard-page">
-      <DashboardHeader
-        onOpenProductModal={() => setIsProductModalOpen(true)}
-        onOpenPromotionModal={() => setIsPromotionModalOpen(true)}
-        onDebugAuthMe={handleDebugAuthMe}
-        isDebugAuthMeLoading={isDebugAuthMeLoading}
-      />
-
-      {authMeDebugResponse ? (
-        <section className="dashboard-debug-panel" aria-live="polite">
-          <h2>Resposta de /auth/me</h2>
-          <pre>{authMeDebugResponse}</pre>
-        </section>
-      ) : null}
-
-      <DashboardSummary />
-
       <DashboardOperations />
 
       <ProductModal

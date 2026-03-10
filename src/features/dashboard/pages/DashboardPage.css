@@ -407,6 +407,11 @@
   gap: 14px;
 }
 
+.dashboard-overview-actions {
+  margin-top: 14px;
+  justify-content: flex-start;
+}
+
 .dashboard-panel {
   min-width: 0;
   border: 1px solid var(--pf-color-border-soft);
