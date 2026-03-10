@@ -1,11 +1,15 @@
 interface DashboardHeaderProps {
   onOpenProductModal: () => void;
   onOpenPromotionModal: () => void;
+  onDebugAuthMe: () => void;
+  isDebugAuthMeLoading: boolean;
 }
 
 export function DashboardHeader({
   onOpenProductModal,
   onOpenPromotionModal,
+  onDebugAuthMe,
+  isDebugAuthMeLoading,
 }: DashboardHeaderProps) {
   return (
     <section className="dashboard-header">
@@ -15,6 +19,14 @@ export function DashboardHeader({
           <p>Gerencie seu negócio e cadastre novos produtos.</p>
         </div>
         <div className="dashboard-header-actions">
+          <button
+            type="button"
+            className="dashboard-secondary-button"
+            onClick={onDebugAuthMe}
+            disabled={isDebugAuthMeLoading}
+          >
+            {isDebugAuthMeLoading ? "Consultando auth/me..." : "Debug auth/me"}
+          </button>
           <button
             type="button"
             className="dashboard-primary-button"

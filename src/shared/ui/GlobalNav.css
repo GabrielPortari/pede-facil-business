@@ -58,6 +58,17 @@
   position: relative;
   display: flex;
   align-items: center;
+  gap: 8px;
+}
+
+.global-nav-business-name {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--pf-color-brand-900);
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 .global-nav-account-avatar,
@@ -169,6 +180,10 @@
 
   .global-nav-account {
     justify-content: center;
+  }
+
+  .global-nav-business-name {
+    max-width: 130px;
   }
 
   .global-nav-account-menu {

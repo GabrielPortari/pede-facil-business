@@ -1,8 +1,11 @@
 .dashboard-page {
-  margin: 0 auto;
-  max-width: 1040px;
+  box-sizing: border-box;
+  margin: 0;
+  max-width: none;
+  width: 100%;
   min-height: 100vh;
-  padding: 32px 20px 48px;
+  padding: 32px 20px 48px 300px;
+  overflow-x: hidden;
 }
 
 .dashboard-header {
@@ -42,6 +45,33 @@
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.dashboard-debug-panel {
+  margin-top: 16px;
+  border: 1px solid var(--pf-color-border-soft);
+  border-radius: 12px;
+  background: rgba(var(--pf-rgb-white), 0.96);
+  padding: 14px;
+}
+
+.dashboard-debug-panel h2 {
+  margin: 0 0 10px;
+  font-size: 0.98rem;
+  color: var(--pf-color-brand-900);
+}
+
+.dashboard-debug-panel pre {
+  margin: 0;
+  max-height: 260px;
+  overflow: auto;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--pf-color-border-soft);
+  background: #0f172a;
+  color: #e2e8f0;
+  font-size: 0.82rem;
+  line-height: 1.45;
 }
 
 .dashboard-card {
@@ -279,19 +309,21 @@
 
 .dashboard-operations {
   margin-top: 24px;
-  display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
-  gap: 14px;
+  display: block;
 }
 
 .operations-sidebar {
+  box-sizing: border-box;
+  width: 280px;
+  position: fixed;
+  top: 84px;
+  left: 0;
+  bottom: 0;
+  overflow-y: auto;
   border: 1px solid var(--pf-color-border-soft);
-  border-radius: 12px;
+  border-radius: 0;
   background: rgba(var(--pf-rgb-white), 0.96);
-  padding: 14px;
-  height: fit-content;
-  position: sticky;
-  top: 16px;
+  padding: 18px 14px 24px;
 }
 
 .operations-sidebar h2 {
@@ -326,12 +358,15 @@
 }
 
 .operations-content {
+  max-width: 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
 .dashboard-panel {
+  min-width: 0;
   border: 1px solid var(--pf-color-border-soft);
   border-radius: 12px;
   background: rgba(var(--pf-rgb-white), 0.96);
@@ -441,7 +476,9 @@
 
 @media (max-width: 768px) {
   .dashboard-page {
+    box-sizing: border-box;
     padding: 16px 16px 28px;
+    overflow-x: hidden;
   }
 
   .dashboard-header,
@@ -480,11 +517,15 @@
   }
 
   .dashboard-operations {
+    display: grid;
     grid-template-columns: 1fr;
   }
 
   .operations-sidebar {
+    width: auto;
     position: static;
+    border-radius: 12px;
+    padding: 14px;
   }
 
   .operations-sidebar nav {

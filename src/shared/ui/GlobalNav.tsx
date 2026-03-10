@@ -41,6 +41,12 @@ export default function GlobalNav() {
   const hasAuthenticatedSession = isAuthenticatedSession();
   const hasLoggedAccount = Boolean(loggedBusinessId || hasAuthenticatedSession);
   const profileImageUrl: string | null = null;
+  const storedBusinessName =
+    localStorage.getItem("business_name")?.trim() ||
+    localStorage.getItem("company_name")?.trim() ||
+    localStorage.getItem("companyName")?.trim() ||
+    null;
+  const businessDisplayName = storedBusinessName || "business_name";
 
   useEffect(() => {
     if (location.pathname !== "/" || !location.hash) {
@@ -169,6 +175,13 @@ export default function GlobalNav() {
         <div className="global-nav-account" ref={accountMenuRef}>
           {hasLoggedAccount ? (
             <>
+              <span
+                className="global-nav-business-name"
+                title={businessDisplayName}
+              >
+                {businessDisplayName}
+              </span>
+
               <button
                 type="button"
                 className="global-nav-account-avatar"

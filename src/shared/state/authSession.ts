@@ -2,6 +2,7 @@ import { API_ENDPOINTS } from "../constants/apiEndpoints";
 
 const ACCESS_TOKEN_STORAGE_KEY = "access_token";
 const BUSINESS_ID_STORAGE_KEY = "business_id";
+const BUSINESS_NAME_STORAGE_KEY = "business_name";
 const SESSION_ACTIVE_STORAGE_KEY = "auth_session_active";
 const LEGACY_BUSINESS_ID_KEYS = [
   "loggedId",
@@ -289,6 +290,39 @@ function getBusinessIdFromAccessToken(
   return getBusinessIdFromUnknownObject(parseJwtPayload(accessToken));
 }
 
+function getBusinessNameFromUnknownObject(value: unknown): string | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const candidate =
+    (
+      value as {
+        name?: unknown;
+        businessName?: unknown;
+        companyName?: unknown;
+      }
+    ).name ??
+    (
+      value as {
+        name?: unknown;
+        businessName?: unknown;
+        companyName?: unknown;
+      }
+    ).businessName ??
+    (
+      value as {
+        name?: unknown;
+        businessName?: unknown;
+        companyName?: unknown;
+      }
+    ).companyName;
+
+  return typeof candidate === "string" && candidate.trim()
+    ? candidate.trim()
+    : null;
+}
+
 export function getBusinessIdFromAuthPayload(
   value: unknown,
   fallbackAccessToken?: string | null,
@@ -429,6 +463,9 @@ export function setAuthSession(params: {
 export function clearStoredAuthSession(): void {
   localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
   localStorage.removeItem(BUSINESS_ID_STORAGE_KEY);
+  localStorage.removeItem(BUSINESS_NAME_STORAGE_KEY);
+  localStorage.removeItem("company_name");
+  localStorage.removeItem("companyName");
   localStorage.removeItem("loggedId");
   localStorage.removeItem(SESSION_ACTIVE_STORAGE_KEY);
 
@@ -438,6 +475,15 @@ export function clearStoredAuthSession(): void {
 
 export function getLoggedBusinessId(): string | null {
   return authSession.businessId;
+}
+
+export function getLoggedBusinessName(): string | null {
+  return (
+    localStorage.getItem(BUSINESS_NAME_STORAGE_KEY)?.trim() ||
+    localStorage.getItem("company_name")?.trim() ||
+    localStorage.getItem("companyName")?.trim() ||
+    null
+  );
 }
 
 export function getLoggedBusinessIdOrThrow(): string {
@@ -496,6 +542,14 @@ export async function fetchAuthenticatedBusiness(): Promise<unknown> {
 
   if (resolvedBusinessId) {
     setStoredBusinessId(resolvedBusinessId);
+  }
+
+  const resolvedBusinessName = getBusinessNameFromUnknownObject(parsedBody);
+
+  if (resolvedBusinessName) {
+    localStorage.setItem(BUSINESS_NAME_STORAGE_KEY, resolvedBusinessName);
+    localStorage.setItem("company_name", resolvedBusinessName);
+    localStorage.setItem("companyName", resolvedBusinessName);
   }
 
   setSessionActive(true);

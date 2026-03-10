@@ -3,6 +3,7 @@ import { loginRequest } from "../services/authService";
 import type { LoginCredentials, SubmitLoginResult } from "../types/auth.type";
 import { ServiceRequestError } from "../../../shared/lib/serviceRequest";
 import {
+  fetchAuthenticatedBusiness,
   getAccessTokenFromNestedAuthPayload,
   getBusinessIdFromAuthPayload,
   refreshAccessToken,
@@ -31,6 +32,12 @@ export function useLogin() {
         accessToken,
         businessId,
       });
+
+      try {
+        await fetchAuthenticatedBusiness();
+      } catch {
+        // Keep login successful even if auth/me fails; navbar can use placeholder.
+      }
 
       return { ok: true, data: result };
     } catch (error) {
