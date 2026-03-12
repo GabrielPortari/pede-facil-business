@@ -6,7 +6,7 @@ export const API_ENDPOINTS = {
     refreshAuth: `${baseUrl}/auth/refresh-auth`,
     signupBusiness: `${baseUrl}/auth/signup/business`,
     recoverPassword: `${baseUrl}/auth/recover-password`,
-    me: `${baseUrl}/auth/me`,
+    me: `${baseUrl}/business/me`,
   },
   products: {
     createByBusiness: (businessId: string) =>

@@ -25,7 +25,9 @@ export function DashboardHeader({
             onClick={onDebugAuthMe}
             disabled={isDebugAuthMeLoading}
           >
-            {isDebugAuthMeLoading ? "Consultando auth/me..." : "Debug auth/me"}
+            {isDebugAuthMeLoading
+              ? "Consultando business/me..."
+              : "Debug business/me"}
           </button>
           <button
             type="button"

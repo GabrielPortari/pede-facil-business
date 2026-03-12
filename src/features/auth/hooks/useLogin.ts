@@ -36,7 +36,7 @@ export function useLogin() {
       try {
         await fetchAuthenticatedBusiness();
       } catch {
-        // Keep login successful even if auth/me fails; navbar can use placeholder.
+        // Keep login successful even if business/me fails; navbar can use placeholder.
       }
 
       return { ok: true, data: result };

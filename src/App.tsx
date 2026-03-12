@@ -4,6 +4,7 @@ import ForgotPasswordPage from "./features/auth/pages/ForgotPasswordPage";
 import LoginPage from "./features/auth/pages/LoginPage";
 import RegisterPage from "./features/auth/pages/RegisterPage";
 import DashboardPage from "./features/dashboard/pages/DashboardPage";
+import HomePage from "./features/home/pages/HomePage";
 import LandingPage from "./features/public/pages/LandingPage";
 import GlobalNav from "./shared/ui/GlobalNav";
 import "./App.css";
@@ -30,7 +31,15 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/home" element={<Navigate to="/dashboard" replace />} />
+          <Route
+            path="/perfil"
+            element={
+              <ProtectedRoute>
+                <HomePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/home" element={<Navigate to="/perfil" replace />} />
           <Route path="/esqueci-minha-senha" element={<ForgotPasswordPage />} />
           <Route path="/registre-se" element={<RegisterPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

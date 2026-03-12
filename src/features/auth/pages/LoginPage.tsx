@@ -2,7 +2,6 @@ import { LoginCard } from "../components/LoginCard";
 import { useLogin } from "../hooks/useLogin";
 import type { LoginCredentials } from "../types/auth.type";
 import { useNavigate } from "react-router-dom";
-import { setAuthSession } from "../../../shared/state/authSession";
 
 export default function LoginPage() {
   const { isLoading, serverError, submitLogin } = useLogin();
@@ -13,11 +12,6 @@ export default function LoginPage() {
     if (result.ok) {
       navigate("/dashboard");
     }
-  }
-
-  function skipLogin() {
-    setAuthSession({ accessToken: "fake-token", businessId: "dev-business" });
-    navigate("/dashboard");
   }
 
   return (

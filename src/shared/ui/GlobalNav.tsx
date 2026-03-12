@@ -47,6 +47,10 @@ export default function GlobalNav() {
     localStorage.getItem("companyName")?.trim() ||
     null;
   const businessDisplayName = storedBusinessName || "business_name";
+  const currentActiveSection =
+    location.pathname === "/" && location.hash
+      ? location.hash.replace("#", "")
+      : activeSection;
 
   useEffect(() => {
     if (location.pathname !== "/" || !location.hash) {
@@ -97,7 +101,6 @@ export default function GlobalNav() {
     }
 
     if (location.hash) {
-      setActiveSection(location.hash.replace("#", ""));
       return;
     }
 
@@ -153,7 +156,7 @@ export default function GlobalNav() {
         <nav className="global-nav" aria-label="Navegacao principal">
           {NAV_ITEMS.map((item) => {
             const isActive =
-              location.pathname === "/" && activeSection === item.id;
+              location.pathname === "/" && currentActiveSection === item.id;
 
             return (
               <Link
@@ -223,7 +226,7 @@ export default function GlobalNav() {
                     role="menuitem"
                     onClick={() => {
                       setIsAccountMenuOpen(false);
-                      navigate("/dashboard");
+                      navigate("/perfil");
                     }}
                   >
                     Meu perfil
