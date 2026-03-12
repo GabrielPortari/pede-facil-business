@@ -112,7 +112,11 @@ export default function HomePage() {
     <main className="home-page page-container">
       <header className="page-header home-page-header">
         <div>
-          <h1>Meu perfil</h1>
+          {profile ? (
+            <h1>{renderValue(profile.name)}</h1>
+          ) : (
+            <h1>business_name</h1>
+          )}
         </div>
 
         <div className="home-page-header-actions">
@@ -153,12 +157,6 @@ export default function HomePage() {
         <>
           <section className="section-card home-page-hero-card">
             <div className="home-page-hero-content">
-              <div>
-                <p className="home-page-eyebrow">Conta autenticada</p>
-                <h2>{renderValue(profile.name)}</h2>
-                <p className="home-page-subtitle">{renderValue(profile.id)}</p>
-              </div>
-
               <div className="summary-grid home-page-summary-grid">
                 <article className="summary-card home-page-summary-card">
                   <p>Email</p>
