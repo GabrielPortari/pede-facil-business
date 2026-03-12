@@ -11,9 +11,17 @@ export const API_ENDPOINTS = {
   products: {
     createByBusiness: (businessId: string) =>
       `${baseUrl}/business/${businessId}/products`,
+    availableByBusiness: (businessId: string) =>
+      `${baseUrl}/business/${businessId}/products/available`,
+    unavailableByBusiness: (businessId: string) =>
+      `${baseUrl}/business/${businessId}/products/unavailable`,
+    withoutPromotionsByBusiness: (businessId: string) =>
+      `${baseUrl}/business/${businessId}/products/without-promotions`,
     byBusinessAndId: (businessId: string, productId: string) =>
       `${baseUrl}/business/${businessId}/products/${productId}`,
-    promotion: (productId: string) =>
-      `${baseUrl}/products/${productId}/promotion`,
+    promotionsByBusiness: (businessId: string) =>
+      `${baseUrl}/business/${businessId}/products/promotions`,
+    promotionByBusinessAndProduct: (businessId: string, productId: string) =>
+      `${baseUrl}/business/${businessId}/products/${productId}/promotion`,
   },
 } as const;

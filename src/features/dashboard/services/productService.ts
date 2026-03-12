@@ -3,6 +3,7 @@ import type {
   CreateProductPayload,
   CreateProductResponse,
   DeleteProductResponse,
+  PromotedProduct,
   UpdateProductPayload,
   UpdateProductPromotionPayload,
   UpdateProductPromotionResponse,
@@ -20,6 +21,62 @@ export async function getBusinessProductsRequest(): Promise<BusinessProduct[]> {
     {
       method: "GET",
       errorMessage: "Load products failed",
+    },
+  );
+}
+
+export async function getAvailableBusinessProductsRequest(): Promise<
+  BusinessProduct[]
+> {
+  const businessId = getLoggedBusinessIdOrThrow();
+
+  return serviceRequest<BusinessProduct[]>(
+    API_ENDPOINTS.products.availableByBusiness(businessId),
+    {
+      method: "GET",
+      errorMessage: "Load available products failed",
+    },
+  );
+}
+
+export async function getUnavailableBusinessProductsRequest(): Promise<
+  BusinessProduct[]
+> {
+  const businessId = getLoggedBusinessIdOrThrow();
+
+  return serviceRequest<BusinessProduct[]>(
+    API_ENDPOINTS.products.unavailableByBusiness(businessId),
+    {
+      method: "GET",
+      errorMessage: "Load unavailable products failed",
+    },
+  );
+}
+
+export async function getBusinessProductsWithoutPromotionRequest(): Promise<
+  BusinessProduct[]
+> {
+  const businessId = getLoggedBusinessIdOrThrow();
+
+  return serviceRequest<BusinessProduct[]>(
+    API_ENDPOINTS.products.withoutPromotionsByBusiness(businessId),
+    {
+      method: "GET",
+      errorMessage: "Load products without promotion failed",
+    },
+  );
+}
+
+export async function getBusinessPromotedProductsRequest(): Promise<
+  PromotedProduct[]
+> {
+  const businessId = getLoggedBusinessIdOrThrow();
+
+  return serviceRequest<PromotedProduct[]>(
+    API_ENDPOINTS.products.promotionsByBusiness(businessId),
+    {
+      method: "GET",
+      errorMessage: "Load promoted products failed",
     },
   );
 }
@@ -73,12 +130,17 @@ export async function updateProductPromotionRequest(
   productId: string,
   payload: UpdateProductPromotionPayload,
 ): Promise<UpdateProductPromotionResponse> {
+  const businessId = getLoggedBusinessIdOrThrow();
+
   return serviceRequest<
     UpdateProductPromotionResponse,
     UpdateProductPromotionPayload
-  >(API_ENDPOINTS.products.promotion(productId), {
-    method: "PATCH",
-    body: payload,
-    errorMessage: "Update promotion failed",
-  });
+  >(
+    API_ENDPOINTS.products.promotionByBusinessAndProduct(businessId, productId),
+    {
+      method: "PATCH",
+      body: payload,
+      errorMessage: "Update promotion failed",
+    },
+  );
 }

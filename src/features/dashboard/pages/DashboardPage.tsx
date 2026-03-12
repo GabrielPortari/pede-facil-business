@@ -6,12 +6,16 @@ import {
   PromotionModal,
 } from "../components";
 import { useBusinessProducts } from "../hooks/useBusinessProducts";
+import type { ProductAvailabilityFilter } from "../hooks/useBusinessProducts";
 import { useCreateProduct } from "../hooks/useCreateProduct";
 import { useDeleteProduct } from "../hooks/useDeleteProduct";
+import { usePromotedProducts } from "../hooks/usePromotedProducts";
+import { useProductsWithoutPromotion } from "../hooks/useProductsWithoutPromotion";
 import { useUpdateProduct } from "../hooks/useUpdateProduct";
 import { useUpdateProductPromotion } from "../hooks/useUpdateProductPromotion";
 import type {
   BusinessProduct,
+  PromotedProduct,
   PromotionType,
   UpdateProductPayload,
 } from "../types/product.type";
@@ -66,6 +70,18 @@ function formatCentsToBrl(amountInCents: number): string {
   }).format(amountInCents / 100);
 }
 
+function mapPromotedProductToItem(product: PromotedProduct) {
+  return {
+    id: product.id,
+    name: product.name,
+    description: product.description,
+    priceInCents: product.price.amount,
+    promotionType: product.promotion.type,
+    promotionPercentage: product.promotion.percentage,
+    promotionAmountInCents: product.promotion.amount?.amount,
+  };
+}
+
 function mapBusinessProductToPromotionOption(product: BusinessProduct) {
   const hasAvailableStock = product.useStock
     ? Boolean(product.available && (product.stock ?? 0) > 0)
@@ -99,6 +115,15 @@ export default function DashboardPage() {
   const [deletingProductId, setDeletingProductId] = useState<string | null>(
     null,
   );
+  const [removingPromotionProductId, setRemovingPromotionProductId] = useState<
+    string | null
+  >(null);
+  const [removePromotionError, setRemovePromotionError] = useState("");
+  const [productFilter, setProductFilter] =
+    useState<ProductAvailabilityFilter>("all");
+  const [promotionFilter, setPromotionFilter] = useState<"with" | "without">(
+    "with",
+  );
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -123,7 +148,21 @@ export default function DashboardPage() {
     isLoading: isProductsLoading,
     errorMessage: productsError,
     reloadProducts,
-  } = useBusinessProducts();
+  } = useBusinessProducts(productFilter);
+
+  const {
+    promotedProducts,
+    isLoading: isPromotionsLoading,
+    errorMessage: promotionsError,
+    reloadPromotedProducts,
+  } = usePromotedProducts();
+
+  const {
+    products: productsWithoutPromotion,
+    isLoading: isProductsWithoutPromotionLoading,
+    errorMessage: productsWithoutPromotionError,
+    reloadProducts: reloadProductsWithoutPromotion,
+  } = useProductsWithoutPromotion();
 
   const {
     isLoading,
@@ -157,6 +196,16 @@ export default function DashboardPage() {
   } = useUpdateProductPromotion();
 
   const promotionProducts = products.map(mapBusinessProductToPromotionOption);
+  const promotedProductIds = new Set(promotedProducts.map((p) => p.id));
+  const dashboardProductItems = promotionProducts.map((p) => ({
+    ...p,
+    hasActivePromotion: promotedProductIds.has(p.id),
+  }));
+  const promotedProductItems = promotedProducts.map(mapPromotedProductToItem);
+  const withoutPromotionItems = productsWithoutPromotion.map((p) => ({
+    ...mapBusinessProductToPromotionOption(p),
+    hasActivePromotion: false,
+  }));
   const isEditingProduct = Boolean(editingProductId);
 
   const parsedPrice = parsePriceToCents(price);
@@ -288,6 +337,38 @@ export default function DashboardPage() {
     setEditingProductId(null);
     setSuccessMessage("");
     setUpdateSuccessMessage("");
+  }
+
+  function handleApplyPromotion(productId?: string): void {
+    setPromotionProductId(productId ?? "");
+    setIsPromotionModalOpen(true);
+  }
+
+  async function handleRemovePromotion(productId: string): Promise<void> {
+    const product = products.find((item) => item.id === productId);
+    const confirmed = window.confirm(
+      `Remover a promoção do produto "${product?.name ?? productId}"?`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setRemovePromotionError("");
+    setRemovingPromotionProductId(productId);
+
+    const result = await submitPromotion(productId, { active: false });
+
+    if (result.ok) {
+      await Promise.all([
+        reloadPromotedProducts(),
+        reloadProductsWithoutPromotion(),
+      ]);
+    } else {
+      setRemovePromotionError("Não foi possível remover a promoção.");
+    }
+
+    setRemovingPromotionProductId(null);
   }
 
   function handleOpenCreateProductModal(): void {
@@ -438,14 +519,18 @@ export default function DashboardPage() {
       setPromotionStock("");
       setIsPromotionSubmitted(false);
       setIsPromotionModalOpen(false);
-      await reloadProducts();
+      await Promise.all([
+        reloadProducts(),
+        reloadPromotedProducts(),
+        reloadProductsWithoutPromotion(),
+      ]);
     }
   }
 
   return (
     <main className="dashboard-page">
       <DashboardOperations
-        products={promotionProducts}
+        products={dashboardProductItems}
         isProductsLoading={isProductsLoading}
         productsError={productsError}
         deleteError={deleteServerError}
@@ -458,7 +543,30 @@ export default function DashboardPage() {
         onDeleteProduct={(productId) => {
           void handleDeleteProduct(productId);
         }}
+        onOpenPromotionModal={handleApplyPromotion}
         formatPrice={formatCentsToBrl}
+        productFilter={productFilter}
+        onProductFilterChange={setProductFilter}
+        promotedProducts={promotedProductItems}
+        isPromotionsLoading={isPromotionsLoading}
+        promotionsError={promotionsError}
+        removePromotionError={removePromotionError}
+        removingPromotionProductId={removingPromotionProductId}
+        onReloadPromotedProducts={() => {
+          void reloadPromotedProducts();
+        }}
+        onRemovePromotion={(productId) => {
+          void handleRemovePromotion(productId);
+        }}
+        productsWithoutPromotion={withoutPromotionItems}
+        isProductsWithoutPromotionLoading={isProductsWithoutPromotionLoading}
+        productsWithoutPromotionError={productsWithoutPromotionError}
+        onReloadProductsWithoutPromotion={() => {
+          void reloadProductsWithoutPromotion();
+        }}
+        onApplyPromotion={(productId) => handleApplyPromotion(productId)}
+        promotionFilter={promotionFilter}
+        onPromotionFilterChange={setPromotionFilter}
       />
 
       <ProductModal

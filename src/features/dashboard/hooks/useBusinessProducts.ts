@@ -1,8 +1,14 @@
 import { useEffect, useState } from "react";
-import { getBusinessProductsRequest } from "../services/productService";
+import {
+  getAvailableBusinessProductsRequest,
+  getBusinessProductsRequest,
+  getUnavailableBusinessProductsRequest,
+} from "../services/productService";
 import type { BusinessProduct } from "../types/product.type";
 
-export function useBusinessProducts() {
+export type ProductAvailabilityFilter = "all" | "available" | "unavailable";
+
+export function useBusinessProducts(filter: ProductAvailabilityFilter = "all") {
   const [products, setProducts] = useState<BusinessProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -12,7 +18,16 @@ export function useBusinessProducts() {
       setIsLoading(true);
       setErrorMessage("");
 
-      const nextProducts = await getBusinessProductsRequest();
+      let nextProducts: BusinessProduct[];
+
+      if (filter === "available") {
+        nextProducts = await getAvailableBusinessProductsRequest();
+      } else if (filter === "unavailable") {
+        nextProducts = await getUnavailableBusinessProductsRequest();
+      } else {
+        nextProducts = await getBusinessProductsRequest();
+      }
+
       setProducts(Array.isArray(nextProducts) ? nextProducts : []);
     } catch (error) {
       console.error("[useBusinessProducts] Failed to load products", {
@@ -28,7 +43,7 @@ export function useBusinessProducts() {
 
   useEffect(() => {
     void reloadProducts();
-  }, []);
+  }, [filter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
     products,

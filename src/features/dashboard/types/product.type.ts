@@ -97,3 +97,16 @@ export interface SubmitUpdateProductPromotionResult {
   ok: boolean;
   data?: UpdateProductPromotionResponse;
 }
+
+export interface PromotionDetails {
+  active: boolean;
+  type?: PromotionType;
+  percentage?: number;
+  amount?: MoneyPayload;
+  usePromotionStock?: boolean;
+  promotionStock?: number;
+}
+
+export interface PromotedProduct extends BusinessProduct {
+  promotion: PromotionDetails;
+}
