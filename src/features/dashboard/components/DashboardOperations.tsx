@@ -25,7 +25,6 @@ interface DashboardOperationsProps {
   deletingProductId: string | null;
   onReloadProducts: () => void;
   onOpenProductModal: () => void;
-  onOpenPromotionModal: () => void;
   onEditProduct: (productId: string) => void;
   onDeleteProduct: (productId: string) => void;
   formatPrice: (amountInCents: number) => string;
@@ -39,7 +38,6 @@ export function DashboardOperations({
   deletingProductId,
   onReloadProducts,
   onOpenProductModal,
-  onOpenPromotionModal,
   onEditProduct,
   onDeleteProduct,
   formatPrice,
@@ -80,14 +78,6 @@ export function DashboardOperations({
                 disabled={isProductsLoading}
               >
                 {isProductsLoading ? "Atualizando..." : "Atualizar lista"}
-              </button>
-              <button
-                type="button"
-                className="dashboard-secondary-button"
-                onClick={onOpenPromotionModal}
-                disabled={!products.length}
-              >
-                Aplicar promoção
               </button>
               <button
                 type="button"

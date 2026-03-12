@@ -454,7 +454,6 @@ export default function DashboardPage() {
           void reloadProducts();
         }}
         onOpenProductModal={handleOpenCreateProductModal}
-        onOpenPromotionModal={() => setIsPromotionModalOpen(true)}
         onEditProduct={handleOpenEditProductModal}
         onDeleteProduct={(productId) => {
           void handleDeleteProduct(productId);
