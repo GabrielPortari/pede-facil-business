@@ -1,5 +1,6 @@
 interface ProductModalProps {
   isOpen: boolean;
+  mode?: "create" | "edit";
   isLoading: boolean;
   serverError: string;
   successMessage: string;
@@ -27,6 +28,7 @@ interface ProductModalProps {
 
 export function ProductModal({
   isOpen,
+  mode = "create",
   isLoading,
   serverError,
   successMessage,
@@ -55,6 +57,8 @@ export function ProductModal({
     return null;
   }
 
+  const isEditMode = mode === "edit";
+
   return (
     <div
       className="dashboard-modal-overlay"
@@ -65,15 +69,16 @@ export function ProductModal({
         className="dashboard-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Cadastro de produto"
+        aria-label={isEditMode ? "Edição de produto" : "Cadastro de produto"}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="dashboard-modal-header">
           <div>
-            <h2>Cadastrar produto</h2>
+            <h2>{isEditMode ? "Editar produto" : "Cadastrar produto"}</h2>
             <p>
-              Preencha os dados principais para adicionar um novo item ao
-              cardápio.
+              {isEditMode
+                ? "Atualize os dados principais do produto cadastrado."
+                : "Preencha os dados principais para adicionar um novo item ao cardápio."}
             </p>
           </div>
           <button
@@ -189,7 +194,13 @@ export function ProductModal({
           {successMessage && <p className="form-success">{successMessage}</p>}
 
           <button type="submit" disabled={isLoading || !isProductFormValid}>
-            {isLoading ? "Cadastrando..." : "Cadastrar produto"}
+            {isLoading
+              ? isEditMode
+                ? "Salvando..."
+                : "Cadastrando..."
+              : isEditMode
+                ? "Salvar alterações"
+                : "Cadastrar produto"}
           </button>
         </form>
       </section>

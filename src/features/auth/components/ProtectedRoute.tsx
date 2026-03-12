@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 import {
   getStoredAccessToken,
   isAuthenticatedSession,
+  setSessionExpiredNotice,
 } from "../../../shared/state/authSession";
 
 interface ProtectedRouteProps {
@@ -14,6 +15,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const hasAuthenticatedSession = isAuthenticatedSession();
 
   if (!token && !hasAuthenticatedSession) {
+    setSessionExpiredNotice();
     return <Navigate to="/login" replace />;
   }
 

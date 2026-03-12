@@ -4,6 +4,7 @@ const ACCESS_TOKEN_STORAGE_KEY = "access_token";
 const BUSINESS_ID_STORAGE_KEY = "business_id";
 const BUSINESS_NAME_STORAGE_KEY = "business_name";
 const SESSION_ACTIVE_STORAGE_KEY = "auth_session_active";
+const SESSION_NOTICE_STORAGE_KEY = "auth_session_notice";
 const LEGACY_BUSINESS_ID_KEYS = [
   "loggedId",
   "businessId",
@@ -22,6 +23,12 @@ export const authSession: AuthSessionState = {
 };
 
 let refreshPromise: Promise<string | null> | null = null;
+let autoRefreshTimeoutId: number | null = null;
+let isAutoRefreshInitialized = false;
+
+const AUTO_REFRESH_FALLBACK_INTERVAL_MS = 10 * 60 * 1000;
+const AUTO_REFRESH_MIN_DELAY_MS = 30 * 1000;
+const AUTO_REFRESH_TOKEN_BUFFER_MS = 60 * 1000;
 
 function parseJwtPayload(token: string): unknown {
   if (!token || typeof token !== "string") {
@@ -42,6 +49,169 @@ function parseJwtPayload(token: string): unknown {
   } catch {
     return null;
   }
+}
+
+function getAccessTokenExpirationTimestamp(
+  token: string | null,
+): number | null {
+  const payload = parseJwtPayload(token ?? "");
+
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  const expiration = (payload as { exp?: unknown }).exp;
+
+  if (typeof expiration !== "number" || !Number.isFinite(expiration)) {
+    return null;
+  }
+
+  return expiration * 1000;
+}
+
+function isAccessTokenExpired(token: string | null): boolean {
+  const expirationTimestamp = getAccessTokenExpirationTimestamp(token);
+
+  if (!expirationTimestamp) {
+    // If token has no exp claim, keep the current session and rely on API 401 fallback.
+    return false;
+  }
+
+  return expirationTimestamp <= Date.now();
+}
+
+function clearAutoRefreshTimeout(): void {
+  if (autoRefreshTimeoutId !== null) {
+    window.clearTimeout(autoRefreshTimeoutId);
+    autoRefreshTimeoutId = null;
+  }
+}
+
+function setSessionNotice(message: string): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  sessionStorage.setItem(SESSION_NOTICE_STORAGE_KEY, message);
+}
+
+export function getSessionNotice(): string {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  return sessionStorage.getItem(SESSION_NOTICE_STORAGE_KEY)?.trim() || "";
+}
+
+export function clearSessionNotice(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  sessionStorage.removeItem(SESSION_NOTICE_STORAGE_KEY);
+}
+
+export function setSessionExpiredNotice(): void {
+  setSessionNotice(
+    "Sua sessão expirou e não pôde ser renovada. Entre novamente para continuar.",
+  );
+}
+
+function forceLogoutAfterRefreshFailure(message: string): null {
+  setSessionNotice(message);
+  clearStoredAuthSession();
+
+  if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+    window.location.replace("/login");
+  }
+
+  return null;
+}
+
+function getNextAutoRefreshDelay(): number {
+  const expirationTimestamp = getAccessTokenExpirationTimestamp(
+    getStoredAccessToken(),
+  );
+
+  if (!expirationTimestamp) {
+    return AUTO_REFRESH_FALLBACK_INTERVAL_MS;
+  }
+
+  return Math.max(
+    AUTO_REFRESH_MIN_DELAY_MS,
+    expirationTimestamp - Date.now() - AUTO_REFRESH_TOKEN_BUFFER_MS,
+  );
+}
+
+function scheduleAutoRefresh(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  clearAutoRefreshTimeout();
+
+  if (!getStoredAccessToken() && !isAuthenticatedSession()) {
+    return;
+  }
+
+  autoRefreshTimeoutId = window.setTimeout(() => {
+    void runScheduledSessionRefresh();
+  }, getNextAutoRefreshDelay());
+}
+
+async function runScheduledSessionRefresh(force = false): Promise<void> {
+  if (!getStoredAccessToken() && !isAuthenticatedSession()) {
+    clearAutoRefreshTimeout();
+    return;
+  }
+
+  try {
+    const refreshedAccessToken = await refreshAccessToken(force);
+
+    if (refreshedAccessToken || isAuthenticatedSession()) {
+      scheduleAutoRefresh();
+      return;
+    }
+  } catch {
+    // Keep requests resilient; the next focused interaction can retry again.
+  }
+
+  scheduleAutoRefresh();
+}
+
+function handleSessionVisibilityRefresh(): void {
+  if (document.visibilityState === "visible") {
+    void runScheduledSessionRefresh(true);
+  }
+}
+
+function handleSessionFocusRefresh(): void {
+  void runScheduledSessionRefresh(true);
+}
+
+export function startAutoRefreshSession(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  if (!isAutoRefreshInitialized) {
+    document.addEventListener(
+      "visibilitychange",
+      handleSessionVisibilityRefresh,
+    );
+    window.addEventListener("focus", handleSessionFocusRefresh);
+    isAutoRefreshInitialized = true;
+  }
+
+  scheduleAutoRefresh();
+}
+
+export function stopAutoRefreshSession(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  clearAutoRefreshTimeout();
 }
 
 export function getAccessTokenFromAuthPayload(value: unknown): string | null {
@@ -439,6 +609,8 @@ export function setStoredAccessToken(accessToken: string): void {
   if (derivedBusinessId) {
     setStoredBusinessId(derivedBusinessId);
   }
+
+  startAutoRefreshSession();
 }
 
 export function setAuthSession(params: {
@@ -458,6 +630,8 @@ export function setAuthSession(params: {
   if (explicitBusinessId) {
     setStoredBusinessId(explicitBusinessId);
   }
+
+  startAutoRefreshSession();
 }
 
 export function clearStoredAuthSession(): void {
@@ -471,6 +645,8 @@ export function clearStoredAuthSession(): void {
 
   authSession.accessToken = null;
   authSession.businessId = null;
+
+  stopAutoRefreshSession();
 }
 
 export function getLoggedBusinessId(): string | null {
@@ -572,10 +748,16 @@ async function requestRefreshAccessToken(): Promise<string | null> {
   });
 
   if (!response.ok) {
-    if (response.status === 401 || response.status === 403) {
-      clearStoredAuthSession();
+    const canKeepCurrentSession =
+      Boolean(currentAccessToken) && !isAccessTokenExpired(currentAccessToken);
+
+    if (canKeepCurrentSession) {
+      return null;
     }
-    return null;
+
+    return forceLogoutAfterRefreshFailure(
+      "Sua sessão expirou e não pôde ser renovada. Entre novamente para continuar.",
+    );
   }
 
   const rawBody = await response.text();
@@ -583,7 +765,16 @@ async function requestRefreshAccessToken(): Promise<string | null> {
   const refreshedAccessToken = getAccessTokenFromAuthPayload(parsedBody);
 
   if (!refreshedAccessToken) {
-    return null;
+    const canKeepCurrentSession =
+      Boolean(currentAccessToken) && !isAccessTokenExpired(currentAccessToken);
+
+    if (canKeepCurrentSession) {
+      return null;
+    }
+
+    return forceLogoutAfterRefreshFailure(
+      "Sua sessão expirou e não pôde ser renovada. Entre novamente para continuar.",
+    );
   }
 
   const refreshedBusinessId = getBusinessIdFromAuthPayload(
@@ -619,6 +810,7 @@ export async function initializeAuthSession(): Promise<void> {
   syncAuthSessionFromStorage();
 
   if (!authSession.accessToken && !isAuthenticatedSession()) {
+    stopAutoRefreshSession();
     return;
   }
 
@@ -628,4 +820,6 @@ export async function initializeAuthSession(): Promise<void> {
   } catch {
     // Keep current token on startup failures; requests can retry/refresh later.
   }
+
+  startAutoRefreshSession();
 }

@@ -1,12 +1,28 @@
 import type {
+  BusinessProduct,
   CreateProductPayload,
   CreateProductResponse,
+  DeleteProductResponse,
+  UpdateProductPayload,
   UpdateProductPromotionPayload,
   UpdateProductPromotionResponse,
+  UpdateProductResponse,
 } from "../types/product.type";
 import { API_ENDPOINTS } from "../../../shared/constants/apiEndpoints";
 import { serviceRequest } from "../../../shared/lib/serviceRequest";
 import { getLoggedBusinessIdOrThrow } from "../../../shared/state/authSession";
+
+export async function getBusinessProductsRequest(): Promise<BusinessProduct[]> {
+  const businessId = getLoggedBusinessIdOrThrow();
+
+  return serviceRequest<BusinessProduct[]>(
+    API_ENDPOINTS.products.createByBusiness(businessId),
+    {
+      method: "GET",
+      errorMessage: "Load products failed",
+    },
+  );
+}
 
 export async function createProductRequest(
   payload: CreateProductPayload,
@@ -19,6 +35,36 @@ export async function createProductRequest(
       method: "POST",
       body: payload,
       errorMessage: "Create product failed",
+    },
+  );
+}
+
+export async function updateProductRequest(
+  productId: string,
+  payload: UpdateProductPayload,
+): Promise<UpdateProductResponse> {
+  const businessId = getLoggedBusinessIdOrThrow();
+
+  return serviceRequest<UpdateProductResponse, UpdateProductPayload>(
+    API_ENDPOINTS.products.byBusinessAndId(businessId, productId),
+    {
+      method: "PATCH",
+      body: payload,
+      errorMessage: "Update product failed",
+    },
+  );
+}
+
+export async function deleteProductRequest(
+  productId: string,
+): Promise<DeleteProductResponse> {
+  const businessId = getLoggedBusinessIdOrThrow();
+
+  return serviceRequest<DeleteProductResponse>(
+    API_ENDPOINTS.products.byBusinessAndId(businessId, productId),
+    {
+      method: "DELETE",
+      errorMessage: "Delete product failed",
     },
   );
 }

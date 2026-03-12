@@ -11,6 +11,8 @@ export const API_ENDPOINTS = {
   products: {
     createByBusiness: (businessId: string) =>
       `${baseUrl}/business/${businessId}/products`,
+    byBusinessAndId: (businessId: string, productId: string) =>
+      `${baseUrl}/business/${businessId}/products/${productId}`,
     promotion: (productId: string) =>
       `${baseUrl}/products/${productId}/promotion`,
   },

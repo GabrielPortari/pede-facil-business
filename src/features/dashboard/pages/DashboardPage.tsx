@@ -5,9 +5,16 @@ import {
   ProductModal,
   PromotionModal,
 } from "../components";
+import { useBusinessProducts } from "../hooks/useBusinessProducts";
 import { useCreateProduct } from "../hooks/useCreateProduct";
+import { useDeleteProduct } from "../hooks/useDeleteProduct";
+import { useUpdateProduct } from "../hooks/useUpdateProduct";
 import { useUpdateProductPromotion } from "../hooks/useUpdateProductPromotion";
-import type { PromotionType } from "../types/product.type";
+import type {
+  BusinessProduct,
+  PromotionType,
+  UpdateProductPayload,
+} from "../types/product.type";
 import "./DashboardPage.css";
 
 function formatPriceInput(rawValue: string): string {
@@ -59,33 +66,39 @@ function formatCentsToBrl(amountInCents: number): string {
   }).format(amountInCents / 100);
 }
 
-const MOCK_REGISTERED_PRODUCTS = [
-  {
-    id: "prod-001",
-    name: "Café preto",
-    priceInCents: 1099,
-    useStock: true,
-    stock: 12,
-  },
-  {
-    id: "prod-002",
-    name: "Cappuccino",
-    priceInCents: 2450,
-    useStock: true,
-    stock: 6,
-  },
-  {
-    id: "prod-003",
-    name: "Mocha",
-    priceInCents: 800,
-    useStock: false,
-    stock: 0,
-  },
-];
+function mapBusinessProductToPromotionOption(product: BusinessProduct) {
+  const hasAvailableStock = product.useStock
+    ? Boolean(product.available && (product.stock ?? 0) > 0)
+    : Boolean(product.available);
+
+  return {
+    id: product.id,
+    name: product.name,
+    priceInCents: product.price.amount,
+    available: hasAvailableStock,
+    useStock: Boolean(product.useStock),
+    stock: product.stock ?? 0,
+    description: product.description,
+    imageUrl: product.imageUrl,
+  };
+}
+
+function formatPriceToInput(amountInCents: number): string {
+  const integerPart = Math.floor(amountInCents / 100);
+  const decimalPart = Math.abs(amountInCents % 100)
+    .toString()
+    .padStart(2, "0");
+
+  return `R$ ${integerPart},${decimalPart}`;
+}
 
 export default function DashboardPage() {
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [deletingProductId, setDeletingProductId] = useState<string | null>(
+    null,
+  );
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -93,7 +106,7 @@ export default function DashboardPage() {
   const [imageUrl, setImageUrl] = useState("");
   const [available, setAvailable] = useState(true);
   const [useStock, setUseStock] = useState(false);
-  const [stock, setStock] = useState("");
+  const [stock, setStock] = useState("0");
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const [promotionProductId, setPromotionProductId] = useState("");
@@ -106,6 +119,13 @@ export default function DashboardPage() {
   const [isPromotionSubmitted, setIsPromotionSubmitted] = useState(false);
 
   const {
+    products,
+    isLoading: isProductsLoading,
+    errorMessage: productsError,
+    reloadProducts,
+  } = useBusinessProducts();
+
+  const {
     isLoading,
     serverError,
     successMessage,
@@ -114,12 +134,30 @@ export default function DashboardPage() {
   } = useCreateProduct();
 
   const {
+    isLoading: isUpdateLoading,
+    serverError: updateServerError,
+    successMessage: updateSuccessMessage,
+    submitUpdate,
+    setSuccessMessage: setUpdateSuccessMessage,
+  } = useUpdateProduct();
+
+  const {
+    isLoading: isDeleteLoading,
+    serverError: deleteServerError,
+    submitDelete,
+    setServerError: setDeleteServerError,
+  } = useDeleteProduct();
+
+  const {
     isLoading: isPromotionLoading,
     serverError: promotionServerError,
     successMessage: promotionSuccessMessage,
     submitPromotion,
     setSuccessMessage: setPromotionSuccessMessage,
   } = useUpdateProductPromotion();
+
+  const promotionProducts = products.map(mapBusinessProductToPromotionOption);
+  const isEditingProduct = Boolean(editingProductId);
 
   const parsedPrice = parsePriceToCents(price);
   const parsedStock = Number(stock);
@@ -134,7 +172,7 @@ export default function DashboardPage() {
   const isProductFormValid =
     isProductNameValid && isProductPriceValid && isProductStockValid;
 
-  const selectedPromotionProduct = MOCK_REGISTERED_PRODUCTS.find(
+  const selectedPromotionProduct = promotionProducts.find(
     (product) => product.id === promotionProductId,
   );
   const hasRealStockControl = Boolean(selectedPromotionProduct?.useStock);
@@ -238,22 +276,69 @@ export default function DashboardPage() {
         : null
     : null;
 
+  function resetProductForm(): void {
+    setName("");
+    setDescription("");
+    setPrice("");
+    setImageUrl("");
+    setAvailable(true);
+    setUseStock(false);
+    setStock("0");
+    setIsSubmitted(false);
+    setEditingProductId(null);
+    setSuccessMessage("");
+    setUpdateSuccessMessage("");
+  }
+
+  function handleOpenCreateProductModal(): void {
+    resetProductForm();
+    setIsProductModalOpen(true);
+  }
+
+  function handleOpenEditProductModal(productId: string): void {
+    const product = products.find((item) => item.id === productId);
+
+    if (!product) {
+      return;
+    }
+
+    setEditingProductId(product.id);
+    setName(product.name);
+    setDescription(product.description ?? "");
+    setPrice(formatPriceToInput(product.price.amount));
+    setImageUrl(product.imageUrl ?? "");
+    setAvailable(Boolean(product.available));
+    setUseStock(Boolean(product.useStock));
+    setStock(String(product.stock ?? 0));
+    setIsSubmitted(false);
+    setSuccessMessage("");
+    setUpdateSuccessMessage("");
+    setIsProductModalOpen(true);
+  }
+
+  function handleCloseProductModal(): void {
+    setIsProductModalOpen(false);
+    resetProductForm();
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitted(true);
     setSuccessMessage("");
+    setUpdateSuccessMessage("");
 
     if (
       nameError ||
       priceError ||
       stockError ||
       isLoading ||
+      isUpdateLoading ||
       !isProductFormValid
     ) {
       return;
     }
 
-    const result = await submitProduct({
+    const payload: UpdateProductPayload = {
       name: name.trim(),
       description: description.trim() || undefined,
       price: {
@@ -264,19 +349,53 @@ export default function DashboardPage() {
       available,
       useStock,
       stock: useStock ? parsedStock : undefined,
+    };
+
+    if (editingProductId) {
+      const result = await submitUpdate(editingProductId, payload);
+
+      if (result.ok) {
+        handleCloseProductModal();
+        await reloadProducts();
+      }
+
+      return;
+    }
+
+    const result = await submitProduct({
+      ...payload,
     });
 
     if (result.ok) {
-      setName("");
-      setDescription("");
-      setPrice("");
-      setImageUrl("");
-      setAvailable(true);
-      setUseStock(false);
-      setStock("");
-      setIsSubmitted(false);
-      setIsProductModalOpen(false);
+      handleCloseProductModal();
+      await reloadProducts();
     }
+  }
+
+  async function handleDeleteProduct(productId: string): Promise<void> {
+    setDeleteServerError("");
+
+    const product = products.find((item) => item.id === productId);
+    const confirmed = window.confirm(
+      `Excluir o produto "${product?.name ?? productId}"? Esta ação não poderá ser desfeita.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingProductId(productId);
+    const result = await submitDelete(productId);
+
+    if (result.ok) {
+      if (editingProductId === productId) {
+        handleCloseProductModal();
+      }
+
+      await reloadProducts();
+    }
+
+    setDeletingProductId(null);
   }
 
   async function handlePromotionSubmit(event: FormEvent<HTMLFormElement>) {
@@ -319,18 +438,38 @@ export default function DashboardPage() {
       setPromotionStock("");
       setIsPromotionSubmitted(false);
       setIsPromotionModalOpen(false);
+      await reloadProducts();
     }
   }
 
   return (
     <main className="dashboard-page">
-      <DashboardOperations />
+      <DashboardOperations
+        products={promotionProducts}
+        isProductsLoading={isProductsLoading}
+        productsError={productsError}
+        deleteError={deleteServerError}
+        deletingProductId={isDeleteLoading ? deletingProductId : null}
+        onReloadProducts={() => {
+          void reloadProducts();
+        }}
+        onOpenProductModal={handleOpenCreateProductModal}
+        onOpenPromotionModal={() => setIsPromotionModalOpen(true)}
+        onEditProduct={handleOpenEditProductModal}
+        onDeleteProduct={(productId) => {
+          void handleDeleteProduct(productId);
+        }}
+        formatPrice={formatCentsToBrl}
+      />
 
       <ProductModal
         isOpen={isProductModalOpen}
-        isLoading={isLoading}
-        serverError={serverError}
-        successMessage={successMessage}
+        mode={isEditingProduct ? "edit" : "create"}
+        isLoading={isEditingProduct ? isUpdateLoading : isLoading}
+        serverError={isEditingProduct ? updateServerError : serverError}
+        successMessage={
+          isEditingProduct ? updateSuccessMessage : successMessage
+        }
         name={name}
         description={description}
         price={price}
@@ -342,14 +481,20 @@ export default function DashboardPage() {
         priceError={priceError}
         stockError={stockError}
         isProductFormValid={isProductFormValid}
-        onClose={() => setIsProductModalOpen(false)}
+        onClose={handleCloseProductModal}
         onSubmit={handleSubmit}
         onNameChange={setName}
         onDescriptionChange={setDescription}
         onPriceChange={(value) => setPrice(formatPriceInput(value))}
         onImageUrlChange={setImageUrl}
         onAvailableChange={setAvailable}
-        onUseStockChange={setUseStock}
+        onUseStockChange={(value) => {
+          setUseStock(value);
+
+          if (value && !stock.trim()) {
+            setStock("0");
+          }
+        }}
         onStockChange={setStock}
       />
 
@@ -372,7 +517,7 @@ export default function DashboardPage() {
         selectedPromotionProduct={selectedPromotionProduct}
         discountedPriceInCents={discountedPriceInCents}
         isPromotionFormValid={isPromotionFormValid}
-        products={MOCK_REGISTERED_PRODUCTS}
+        products={promotionProducts}
         onClose={() => setIsPromotionModalOpen(false)}
         onSubmit={handlePromotionSubmit}
         onProductChange={setPromotionProductId}
