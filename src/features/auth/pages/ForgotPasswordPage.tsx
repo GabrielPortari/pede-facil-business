@@ -2,6 +2,8 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useForgotPassword } from "../hooks/useForgotPassword";
+import { isValidEmail } from "../../../shared/lib/validation";
+import FormFeedback from "../../../shared/ui/FormFeedback";
 import "./ForgotPasswordPage.css";
 
 export default function ForgotPasswordPage() {
@@ -12,9 +14,7 @@ export default function ForgotPasswordPage() {
   const [successMessage, setSuccessMessage] = useState("");
 
   const emailError =
-    touched && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-      ? "Informe um e-mail válido."
-      : "";
+    touched && !isValidEmail(email) ? "Informe um e-mail válido." : "";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -61,13 +61,10 @@ export default function ForgotPasswordPage() {
             {emailError && <small id="forgot-email-error">{emailError}</small>}
           </div>
 
-          {serverError && (
-            <p role="alert" className="form-error">
-              {serverError}
-            </p>
-          )}
-
-          {successMessage && <p className="form-success">{successMessage}</p>}
+          <FormFeedback
+            serverError={serverError}
+            successMessage={successMessage}
+          />
 
           <button type="submit" disabled={isLoading || Boolean(emailError)}>
             {isLoading ? "Enviando..." : "Enviar link de redefinição"}

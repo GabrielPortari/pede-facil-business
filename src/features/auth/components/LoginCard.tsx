@@ -2,6 +2,8 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
 import type { LoginCredentials } from "../types/auth.type";
+import { isValidEmail } from "../../../shared/lib/validation";
+import FormFeedback from "../../../shared/ui/FormFeedback";
 import "./LoginCard.css";
 
 interface LoginCardProps {
@@ -28,9 +30,7 @@ export function LoginCard({
   });
 
   const emailError =
-    touched.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-      ? "Informe um e-mail válido."
-      : "";
+    touched.email && !isValidEmail(email) ? "Informe um e-mail válido." : "";
 
   const passwordError =
     touched.password && password.length < 6
@@ -98,11 +98,7 @@ export function LoginCard({
             )}
           </div>
 
-          {serverError && (
-            <p role="alert" className="form-error">
-              {serverError}
-            </p>
-          )}
+          <FormFeedback serverError={serverError} />
 
           <button type="submit" disabled={isLoading || hasErrors}>
             {isLoading ? "Entrando..." : "Entrar"}

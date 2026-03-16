@@ -4,6 +4,7 @@ import type {
   UpdateBusinessPayload,
 } from "../../auth/types/auth.type";
 import { useUpdateProfile } from "../hooks/useUpdateProfile";
+import { isValidEmail } from "../../../shared/lib/validation";
 import "./EditProfileModal.css";
 
 interface EditProfileModalProps {
@@ -78,7 +79,7 @@ export function EditProfileModal({
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
-  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim());
+  const isEmailValid = isValidEmail(form.email);
 
   const errors = {
     name: isSubmitted && !form.name.trim() ? "Informe o nome fantasia." : "",
