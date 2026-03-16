@@ -15,6 +15,10 @@ interface DashboardProductItem {
   name: string;
   description?: string;
   priceInCents: number;
+  promotionType?: "percentage" | "fixed";
+  promotionPercentage?: number;
+  promotionAmountInCents?: number;
+  promotedPriceInCents?: number | null;
   available: boolean;
   stock: number;
   useStock: boolean;
@@ -228,7 +232,22 @@ export function DashboardOperations({
                     <dl className="dashboard-product-meta">
                       <div>
                         <dt>Preço</dt>
-                        <dd>{formatPrice(product.priceInCents)}</dd>
+                        <dd>
+                          {product.hasActivePromotion &&
+                          product.promotedPriceInCents !== null &&
+                          product.promotedPriceInCents !== undefined ? (
+                            <span className="dashboard-product-price-promotion">
+                              <span className="dashboard-product-price-original">
+                                {formatPrice(product.priceInCents)}
+                              </span>
+                              <span className="dashboard-product-price-discounted">
+                                {formatPrice(product.promotedPriceInCents)}
+                              </span>
+                            </span>
+                          ) : (
+                            formatPrice(product.priceInCents)
+                          )}
+                        </dd>
                       </div>
                       <div>
                         <dt>Estoque</dt>

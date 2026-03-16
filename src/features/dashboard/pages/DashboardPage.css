@@ -595,6 +595,23 @@
   font-weight: 700;
 }
 
+.dashboard-product-price-promotion {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.dashboard-product-price-original {
+  text-decoration: line-through;
+  color: var(--pf-color-secondary-700);
+  font-weight: 500;
+}
+
+.dashboard-product-price-discounted {
+  color: var(--pf-color-brand-900);
+  font-weight: 700;
+}
+
 .dashboard-product-actions {
   margin-top: auto;
   padding-top: 14px;

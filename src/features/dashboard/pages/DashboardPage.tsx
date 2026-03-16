@@ -82,6 +82,35 @@ function mapPromotedProductToItem(product: PromotedProduct) {
   };
 }
 
+function getPromotionalPriceInCents(product: {
+  priceInCents: number;
+  promotionType?: PromotionType;
+  promotionPercentage?: number;
+  promotionAmountInCents?: number;
+}): number | null {
+  if (product.promotionType === "percentage") {
+    if (product.promotionPercentage === undefined) {
+      return null;
+    }
+
+    const discount = Math.round(
+      (product.priceInCents * product.promotionPercentage) / 100,
+    );
+
+    return Math.max(0, product.priceInCents - discount);
+  }
+
+  if (product.promotionType === "fixed") {
+    if (product.promotionAmountInCents === undefined) {
+      return null;
+    }
+
+    return Math.max(0, product.priceInCents - product.promotionAmountInCents);
+  }
+
+  return null;
+}
+
 function mapBusinessProductToPromotionOption(product: BusinessProduct) {
   const hasAvailableStock = product.useStock
     ? Boolean(product.available && (product.stock ?? 0) > 0)
@@ -198,13 +227,30 @@ export default function DashboardPage() {
     setSuccessMessage: setPromotionSuccessMessage,
   } = useUpdateProductPromotion();
 
-  const promotionProducts = products.map(mapBusinessProductToPromotionOption);
-  const promotedProductIds = new Set(promotedProducts.map((p) => p.id));
-  const dashboardProductItems = promotionProducts.map((p) => ({
-    ...p,
-    hasActivePromotion: promotedProductIds.has(p.id),
-  }));
   const promotedProductItems = promotedProducts.map(mapPromotedProductToItem);
+  const promotedProductMap = new Map(
+    promotedProductItems.map((product) => [product.id, product]),
+  );
+  const promotionProducts = products.map(mapBusinessProductToPromotionOption);
+  const dashboardProductItems = promotionProducts.map((product) => {
+    const promotedProduct = promotedProductMap.get(product.id);
+
+    return {
+      ...product,
+      hasActivePromotion: Boolean(promotedProduct),
+      promotionType: promotedProduct?.promotionType,
+      promotionPercentage: promotedProduct?.promotionPercentage,
+      promotionAmountInCents: promotedProduct?.promotionAmountInCents,
+      promotedPriceInCents: promotedProduct
+        ? getPromotionalPriceInCents({
+            priceInCents: product.priceInCents,
+            promotionType: promotedProduct.promotionType,
+            promotionPercentage: promotedProduct.promotionPercentage,
+            promotionAmountInCents: promotedProduct.promotionAmountInCents,
+          })
+        : null,
+    };
+  });
   const withoutPromotionItems = productsWithoutPromotion.map((p) => ({
     ...mapBusinessProductToPromotionOption(p),
     hasActivePromotion: false,
