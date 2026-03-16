@@ -112,6 +112,9 @@ export default function DashboardPage() {
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [editingPromotionProductId, setEditingPromotionProductId] = useState<
+    string | null
+  >(null);
   const [deletingProductId, setDeletingProductId] = useState<string | null>(
     null,
   );
@@ -340,7 +343,46 @@ export default function DashboardPage() {
   }
 
   function handleApplyPromotion(productId?: string): void {
+    setEditingPromotionProductId(null);
     setPromotionProductId(productId ?? "");
+    setPromotionType("percentage");
+    setPromotionPercentage("0");
+    setPromotionAmount("R$ 0,00");
+    setUsePromotionStock(false);
+    setPromotionStock("");
+    setIsPromotionSubmitted(false);
+    setIsPromotionModalOpen(true);
+  }
+
+  function handleEditPromotion(productId: string): void {
+    const promotedProduct = promotedProducts.find(
+      (item) => item.id === productId,
+    );
+
+    if (!promotedProduct) {
+      return;
+    }
+
+    const promotional = promotedProduct.promotion;
+
+    setEditingPromotionProductId(productId);
+    setPromotionProductId(productId);
+    setPromotionType(promotional.type ?? "percentage");
+
+    if (
+      promotional.type === "percentage" &&
+      promotional.percentage !== undefined
+    ) {
+      setPromotionPercentage(String(promotional.percentage));
+      setPromotionAmount("R$ 0,00");
+    } else if (promotional.type === "fixed" && promotional.amount) {
+      setPromotionAmount(formatPriceToInput(promotional.amount.amount));
+      setPromotionPercentage("0");
+    }
+
+    setUsePromotionStock(Boolean(promotional.usePromotionStock));
+    setPromotionStock(String(promotional.promotionStock ?? ""));
+    setIsPromotionSubmitted(false);
     setIsPromotionModalOpen(true);
   }
 
@@ -400,6 +442,11 @@ export default function DashboardPage() {
   function handleCloseProductModal(): void {
     setIsProductModalOpen(false);
     resetProductForm();
+  }
+
+  function handleClosePromotionModal(): void {
+    setIsPromotionModalOpen(false);
+    setEditingPromotionProductId(null);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -558,6 +605,7 @@ export default function DashboardPage() {
         onRemovePromotion={(productId) => {
           void handleRemovePromotion(productId);
         }}
+        onEditPromotion={handleEditPromotion}
         productsWithoutPromotion={withoutPromotionItems}
         isProductsWithoutPromotionLoading={isProductsWithoutPromotionLoading}
         productsWithoutPromotionError={productsWithoutPromotionError}
@@ -608,6 +656,7 @@ export default function DashboardPage() {
       <PromotionModal
         isOpen={isPromotionModalOpen}
         isLoading={isPromotionLoading}
+        isEditing={Boolean(editingPromotionProductId)}
         serverError={promotionServerError}
         successMessage={promotionSuccessMessage}
         promotionProductId={promotionProductId}
@@ -625,7 +674,7 @@ export default function DashboardPage() {
         discountedPriceInCents={discountedPriceInCents}
         isPromotionFormValid={isPromotionFormValid}
         products={promotionProducts}
-        onClose={() => setIsPromotionModalOpen(false)}
+        onClose={handleClosePromotionModal}
         onSubmit={handlePromotionSubmit}
         onProductChange={setPromotionProductId}
         onTypeChange={(value) => {

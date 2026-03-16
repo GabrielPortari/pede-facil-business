@@ -52,6 +52,7 @@ interface DashboardOperationsProps {
   removingPromotionProductId: string | null;
   onReloadPromotedProducts: () => void;
   onRemovePromotion: (productId: string) => void;
+  onEditPromotion: (productId: string) => void;
   onOpenPromotionModal: () => void;
   productsWithoutPromotion: DashboardProductItem[];
   isProductsWithoutPromotionLoading: boolean;
@@ -82,6 +83,7 @@ export function DashboardOperations({
   removingPromotionProductId,
   onReloadPromotedProducts,
   onRemovePromotion,
+  onEditPromotion,
   onOpenPromotionModal,
   productsWithoutPromotion,
   isProductsWithoutPromotionLoading,
@@ -396,6 +398,14 @@ export function DashboardOperations({
                         </dl>
 
                         <div className="dashboard-product-actions">
+                          <button
+                            type="button"
+                            className="dashboard-action-button"
+                            onClick={() => onEditPromotion(product.id)}
+                            disabled={removingPromotionProductId === product.id}
+                          >
+                            Alterar promoção
+                          </button>
                           <button
                             type="button"
                             className="dashboard-danger-button"
