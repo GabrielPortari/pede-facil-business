@@ -24,4 +24,7 @@ export const API_ENDPOINTS = {
     promotionByBusinessAndProduct: (businessId: string, productId: string) =>
       `${baseUrl}/business/${businessId}/products/${productId}/promotion`,
   },
+  orders: {
+    byAuthenticatedBusiness: `${baseUrl}/business/me/orders`,
+  },
 } as const;

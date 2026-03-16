@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { DashboardOverview } from "./DashboardOverview";
+import { OrdersPanel } from "./OrdersPanel";
+import type { BusinessOrder, OrderStatusFilter } from "../types/order.type";
 
 const OPERATION_MENU = [
   { key: "overview", label: "Visão geral" },
@@ -66,6 +68,14 @@ interface DashboardOperationsProps {
   onApplyPromotion: (productId: string) => void;
   promotionFilter: "with" | "without";
   onPromotionFilterChange: (filter: "with" | "without") => void;
+  orders: BusinessOrder[];
+  isOrdersLoading: boolean;
+  ordersError: string;
+  onReloadOrders: () => void;
+  orderStatusFilter: OrderStatusFilter;
+  onOrderStatusFilterChange: (value: OrderStatusFilter) => void;
+  orderLimit: number;
+  onOrderLimitChange: (value: number) => void;
   overviewStats: {
     totalProducts: number;
     availableProducts: number;
@@ -107,12 +117,21 @@ export function DashboardOperations({
   onApplyPromotion,
   promotionFilter,
   onPromotionFilterChange,
+  orders,
+  isOrdersLoading,
+  ordersError,
+  onReloadOrders,
+  orderStatusFilter,
+  onOrderStatusFilterChange,
+  orderLimit,
+  onOrderLimitChange,
   overviewStats,
 }: DashboardOperationsProps) {
   const [activeTab, setActiveTab] = useState<OperationMenuKey>("overview");
 
   const enabledTabs: OperationMenuKey[] = [
     "overview",
+    "orders",
     "products",
     "promotions",
   ];
@@ -155,6 +174,20 @@ export function DashboardOperations({
             onOpenPromotionModal={onOpenPromotionModal}
             onRefreshProducts={onReloadProducts}
             isRefreshingProducts={isProductsLoading}
+          />
+        ) : null}
+
+        {activeTab === "orders" ? (
+          <OrdersPanel
+            orders={orders}
+            isOrdersLoading={isOrdersLoading}
+            ordersError={ordersError}
+            onReloadOrders={onReloadOrders}
+            formatPrice={formatPrice}
+            statusFilter={orderStatusFilter}
+            onStatusFilterChange={onOrderStatusFilterChange}
+            limit={orderLimit}
+            onLimitChange={onOrderLimitChange}
           />
         ) : null}
 

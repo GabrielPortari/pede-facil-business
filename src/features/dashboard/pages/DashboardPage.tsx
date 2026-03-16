@@ -11,6 +11,7 @@ import { useCreateProduct } from "../hooks/useCreateProduct";
 import { useDeleteProduct } from "../hooks/useDeleteProduct";
 import { usePromotedProducts } from "../hooks/usePromotedProducts";
 import { useProductsWithoutPromotion } from "../hooks/useProductsWithoutPromotion";
+import { useBusinessOrders } from "../hooks/useBusinessOrders";
 import { useUpdateProduct } from "../hooks/useUpdateProduct";
 import { useUpdateProductPromotion } from "../hooks/useUpdateProductPromotion";
 import type {
@@ -19,6 +20,7 @@ import type {
   PromotionType,
   UpdateProductPayload,
 } from "../types/product.type";
+import type { OrderStatusFilter } from "../types/order.type";
 import "./DashboardPage.css";
 
 function formatPriceInput(rawValue: string): string {
@@ -174,6 +176,9 @@ export default function DashboardPage() {
   const [usePromotionStock, setUsePromotionStock] = useState(false);
   const [promotionStock, setPromotionStock] = useState("");
   const [isPromotionSubmitted, setIsPromotionSubmitted] = useState(false);
+  const [orderStatusFilter, setOrderStatusFilter] =
+    useState<OrderStatusFilter>("all");
+  const [orderLimit, setOrderLimit] = useState(50);
 
   const {
     products,
@@ -188,6 +193,13 @@ export default function DashboardPage() {
     errorMessage: promotionsError,
     reloadPromotedProducts,
   } = usePromotedProducts();
+
+  const {
+    orders,
+    isLoading: isOrdersLoading,
+    errorMessage: ordersError,
+    reloadOrders,
+  } = useBusinessOrders(orderStatusFilter, orderLimit);
 
   const {
     products: productsWithoutPromotion,
@@ -681,6 +693,23 @@ export default function DashboardPage() {
         onApplyPromotion={(productId) => handleApplyPromotion(productId)}
         promotionFilter={promotionFilter}
         onPromotionFilterChange={setPromotionFilter}
+        orders={orders}
+        isOrdersLoading={isOrdersLoading}
+        ordersError={ordersError}
+        onReloadOrders={() => {
+          void reloadOrders();
+        }}
+        orderStatusFilter={orderStatusFilter}
+        onOrderStatusFilterChange={setOrderStatusFilter}
+        orderLimit={orderLimit}
+        onOrderLimitChange={(value) => {
+          if (!Number.isFinite(value)) {
+            return;
+          }
+
+          const normalizedValue = Math.max(1, Math.min(100, Math.trunc(value)));
+          setOrderLimit(normalizedValue);
+        }}
         overviewStats={overviewStats}
       />
 
