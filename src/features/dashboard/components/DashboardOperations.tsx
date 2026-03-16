@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DashboardOverview } from "./DashboardOverview";
 
 const OPERATION_MENU = [
   { key: "overview", label: "Visão geral" },
@@ -65,6 +66,16 @@ interface DashboardOperationsProps {
   onApplyPromotion: (productId: string) => void;
   promotionFilter: "with" | "without";
   onPromotionFilterChange: (filter: "with" | "without") => void;
+  overviewStats: {
+    totalProducts: number;
+    availableProducts: number;
+    unavailableProducts: number;
+    promotedProducts: number;
+    productsWithoutPromotion: number;
+    lowStockProducts: number;
+    outOfStockProducts: number;
+    noStockControlProducts: number;
+  };
 }
 
 export function DashboardOperations({
@@ -96,10 +107,15 @@ export function DashboardOperations({
   onApplyPromotion,
   promotionFilter,
   onPromotionFilterChange,
+  overviewStats,
 }: DashboardOperationsProps) {
-  const [activeTab, setActiveTab] = useState<OperationMenuKey>("products");
+  const [activeTab, setActiveTab] = useState<OperationMenuKey>("overview");
 
-  const enabledTabs: OperationMenuKey[] = ["products", "promotions"];
+  const enabledTabs: OperationMenuKey[] = [
+    "overview",
+    "products",
+    "promotions",
+  ];
 
   return (
     <section className="dashboard-operations" aria-label="Operação">
@@ -125,6 +141,23 @@ export function DashboardOperations({
       </aside>
 
       <div className="operations-content">
+        {activeTab === "overview" ? (
+          <DashboardOverview
+            totalProducts={overviewStats.totalProducts}
+            availableProducts={overviewStats.availableProducts}
+            unavailableProducts={overviewStats.unavailableProducts}
+            promotedProducts={overviewStats.promotedProducts}
+            productsWithoutPromotion={overviewStats.productsWithoutPromotion}
+            lowStockProducts={overviewStats.lowStockProducts}
+            outOfStockProducts={overviewStats.outOfStockProducts}
+            noStockControlProducts={overviewStats.noStockControlProducts}
+            onOpenProductModal={onOpenProductModal}
+            onOpenPromotionModal={onOpenPromotionModal}
+            onRefreshProducts={onReloadProducts}
+            isRefreshingProducts={isProductsLoading}
+          />
+        ) : null}
+
         {activeTab === "products" ? (
           <article className="dashboard-panel">
             <div className="dashboard-products-header">

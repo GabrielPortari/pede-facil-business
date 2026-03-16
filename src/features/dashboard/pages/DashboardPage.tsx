@@ -255,6 +255,26 @@ export default function DashboardPage() {
     ...mapBusinessProductToPromotionOption(p),
     hasActivePromotion: false,
   }));
+  const overviewStats = {
+    totalProducts: dashboardProductItems.length,
+    availableProducts: dashboardProductItems.filter(
+      (product) => product.available,
+    ).length,
+    unavailableProducts: dashboardProductItems.filter(
+      (product) => !product.available,
+    ).length,
+    promotedProducts: promotedProductItems.length,
+    productsWithoutPromotion: withoutPromotionItems.length,
+    lowStockProducts: dashboardProductItems.filter(
+      (product) => product.useStock && product.stock > 0 && product.stock <= 5,
+    ).length,
+    outOfStockProducts: dashboardProductItems.filter(
+      (product) => product.useStock && product.stock === 0,
+    ).length,
+    noStockControlProducts: dashboardProductItems.filter(
+      (product) => !product.useStock,
+    ).length,
+  };
   const isEditingProduct = Boolean(editingProductId);
 
   const parsedPrice = parsePriceToCents(price);
@@ -661,6 +681,7 @@ export default function DashboardPage() {
         onApplyPromotion={(productId) => handleApplyPromotion(productId)}
         promotionFilter={promotionFilter}
         onPromotionFilterChange={setPromotionFilter}
+        overviewStats={overviewStats}
       />
 
       <ProductModal
