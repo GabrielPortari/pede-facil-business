@@ -269,7 +269,10 @@ export function OrdersPanel({
                   <div>
                     <h3>Pedido {order.clientOrderId}</h3>
                   </div>
-                  <span className="orders-status">
+                  <span
+                    className="orders-status"
+                    data-order-status={order.status}
+                  >
                     {ORDER_STATUS_LABELS[order.status]}
                   </span>
                 </div>
@@ -288,34 +291,39 @@ export function OrdersPanel({
                     <dd>{order.paymentMethod}</dd>
                   </div>
                   <div>
-                    <dt>Total</dt>
+                    <dt>Total a pagar</dt>
                     <dd>{formatPrice(order.totalPrice.amount)}</dd>
                   </div>
                 </dl>
 
                 <div className="orders-items">
                   <h4>Itens</h4>
+                  <p className="orders-items-header" aria-hidden="true">
+                    <span>Qnt.</span>
+                    <span>Produto</span>
+                    <span>Unit</span>
+                    <span>Subt</span>
+                  </p>
                   <div className="orders-items-list">
                     {order.items.map((item) => (
                       <article
                         key={`${order.id}-${item.productId}-${item.name}`}
                         className="orders-item"
                       >
-                        <p className="orders-item-title">{item.name}</p>
-                        <dl>
-                          <div>
-                            <dt>Quantidade</dt>
-                            <dd>{item.quantity}</dd>
-                          </div>
-                          <div>
-                            <dt>Unitário</dt>
-                            <dd>{formatPrice(item.unitPrice.amount)}</dd>
-                          </div>
-                          <div>
-                            <dt>Subtotal</dt>
-                            <dd>{formatPrice(item.subtotal.amount)}</dd>
-                          </div>
-                        </dl>
+                        <p className="orders-item-line">
+                          <span className="orders-item-qty">
+                            {item.quantity}
+                          </span>
+                          <span className="orders-item-product">
+                            {item.name}
+                          </span>
+                          <span className="orders-item-unit">
+                            {formatPrice(item.unitPrice.amount)}
+                          </span>
+                          <strong className="orders-item-subtotal">
+                            {formatPrice(item.subtotal.amount)}
+                          </strong>
+                        </p>
                       </article>
                     ))}
                   </div>

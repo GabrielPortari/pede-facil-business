@@ -17,6 +17,57 @@ const OPERATION_MENU = [
 
 type OperationMenuKey = (typeof OPERATION_MENU)[number]["key"];
 
+const OPERATIONAL_ORDER_STATUS_PRIORITY: OrderStatus[] = [
+  OrderStatus.CustomerDeclined,
+  OrderStatus.PaidAwaitingDelivery,
+  OrderStatus.PaymentPending,
+];
+
+const OPERATIONAL_ORDER_STATUS_SET = new Set(OPERATIONAL_ORDER_STATUS_PRIORITY);
+
+const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+  [OrderStatus.PaymentPending]: "Pagamento pendente",
+  [OrderStatus.PaidAwaitingDelivery]: "Pago, aguardando entrega",
+  [OrderStatus.Delivered]: "Entregue",
+  [OrderStatus.CustomerConfirmed]: "Confirmado pelo cliente",
+  [OrderStatus.CustomerDeclined]: "Cliente não recebeu",
+  [OrderStatus.CustomerCancelled]: "Cancelado pelo cliente",
+  [OrderStatus.BusinessCancelled]: "Cancelado pelo estabelecimento",
+};
+
+function getTimestampInMs(value: {
+  _seconds?: number;
+  _nanoseconds?: number;
+}): number {
+  const seconds = value?._seconds;
+  const nanoseconds = value?._nanoseconds ?? 0;
+
+  if (typeof seconds !== "number" || !Number.isFinite(seconds)) {
+    return 0;
+  }
+
+  return seconds * 1000 + Math.floor(nanoseconds / 1000000);
+}
+
+function formatOrderTime(value: {
+  _seconds?: number;
+  _nanoseconds?: number;
+}): string {
+  const timestampInMs = getTimestampInMs(value);
+
+  if (!timestampInMs) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(timestampInMs));
+}
+
 interface DashboardProductItem {
   id: string;
   name: string;
@@ -138,12 +189,47 @@ export function DashboardOperations({
   overviewStats,
 }: DashboardOperationsProps) {
   const [activeTab, setActiveTab] = useState<OperationMenuKey>("overview");
+  const baseOperationalOrders = [...orders]
+    .filter((order) => OPERATIONAL_ORDER_STATUS_SET.has(order.status))
+    .sort((firstOrder, secondOrder) => {
+      const firstPriority = OPERATIONAL_ORDER_STATUS_PRIORITY.indexOf(
+        firstOrder.status,
+      );
+      const secondPriority = OPERATIONAL_ORDER_STATUS_PRIORITY.indexOf(
+        secondOrder.status,
+      );
+
+      if (firstPriority !== secondPriority) {
+        return firstPriority - secondPriority;
+      }
+
+      return (
+        getTimestampInMs(secondOrder.createdAt) -
+        getTimestampInMs(firstOrder.createdAt)
+      );
+    });
+
+  const operationalOrders =
+    orderStatusFilter === "all"
+      ? baseOperationalOrders
+      : baseOperationalOrders.filter(
+          (order) => order.status === orderStatusFilter,
+        );
+
+  const informationalOrders = [...orders]
+    .filter((order) => !OPERATIONAL_ORDER_STATUS_SET.has(order.status))
+    .sort(
+      (firstOrder, secondOrder) =>
+        getTimestampInMs(secondOrder.updatedAt) -
+        getTimestampInMs(firstOrder.updatedAt),
+    );
 
   const enabledTabs: OperationMenuKey[] = [
     "overview",
     "orders",
     "products",
     "promotions",
+    "order-info",
   ];
 
   return (
@@ -189,7 +275,7 @@ export function DashboardOperations({
 
         {activeTab === "orders" ? (
           <OrdersPanel
-            orders={orders}
+            orders={operationalOrders}
             isOrdersLoading={isOrdersLoading}
             ordersError={ordersError}
             onReloadOrders={onReloadOrders}
@@ -202,6 +288,77 @@ export function DashboardOperations({
             limit={orderLimit}
             onLimitChange={onOrderLimitChange}
           />
+        ) : null}
+
+        {activeTab === "order-info" ? (
+          <article className="dashboard-panel">
+            <div className="dashboard-products-header">
+              <div>
+                <h2>Informação de pedidos</h2>
+                <p className="dashboard-products-subtitle">
+                  Pedidos fora do fluxo operacional imediato.
+                </p>
+              </div>
+
+              <div className="dashboard-products-actions">
+                <button
+                  type="button"
+                  className="dashboard-secondary-button"
+                  onClick={onReloadOrders}
+                  disabled={isOrdersLoading}
+                >
+                  {isOrdersLoading ? "Atualizando..." : "Atualizar lista"}
+                </button>
+              </div>
+            </div>
+
+            {ordersError ? (
+              <div className="dashboard-products-feedback dashboard-products-feedback-error">
+                <p>{ordersError}</p>
+              </div>
+            ) : null}
+
+            {!ordersError && isOrdersLoading ? (
+              <div className="dashboard-products-feedback">
+                <p>Carregando pedidos...</p>
+              </div>
+            ) : null}
+
+            {!ordersError && !isOrdersLoading && !informationalOrders.length ? (
+              <div className="dashboard-products-feedback">
+                <p>Nenhum pedido informativo encontrado.</p>
+              </div>
+            ) : null}
+
+            {informationalOrders.length ? (
+              <div className="details-list">
+                {informationalOrders.map((order) => (
+                  <article key={order.id} className="details-card">
+                    <div className="details-header">
+                      <div>
+                        <h3>Pedido {order.clientOrderId}</h3>
+                        <p>Cliente: {order.userName?.trim() || order.userId}</p>
+                      </div>
+
+                      <span
+                        className="orders-status"
+                        data-order-status={order.status}
+                      >
+                        {ORDER_STATUS_LABELS[order.status]}
+                      </span>
+                    </div>
+
+                    <ul>
+                      <li>Pagamento: {order.paymentMethod}</li>
+                      <li>Total: {formatPrice(order.totalPrice.amount)}</li>
+                      <li>Criado em: {formatOrderTime(order.createdAt)}</li>
+                      <li>Atualizado em: {formatOrderTime(order.updatedAt)}</li>
+                    </ul>
+                  </article>
+                ))}
+              </div>
+            ) : null}
+          </article>
         ) : null}
 
         {activeTab === "products" ? (

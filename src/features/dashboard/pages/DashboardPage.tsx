@@ -207,7 +207,7 @@ export default function DashboardPage() {
     isLoading: isOrdersLoading,
     errorMessage: ordersError,
     reloadOrders,
-  } = useBusinessOrders(orderStatusFilter, orderLimit);
+  } = useBusinessOrders(OrderStatusFilterValue.All, orderLimit);
 
   const {
     products: productsWithoutPromotion,
