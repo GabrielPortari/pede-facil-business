@@ -12,13 +12,22 @@ import "./App.css";
 function App() {
   const location = useLocation();
   const isLandingPage = location.pathname === "/";
+  const isAuthPage = [
+    "/login",
+    "/esqueci-minha-senha",
+    "/registre-se",
+  ].includes(location.pathname);
+
+  const shouldApplyTopOffset = !isLandingPage && !isAuthPage;
 
   return (
     <>
       <GlobalNav />
 
       <div
-        className={`app-route-content${isLandingPage ? " app-route-content-landing" : ""}`}
+        className={`app-route-content${
+          shouldApplyTopOffset ? "" : " app-route-content-no-offset"
+        }`}
       >
         <Routes>
           <Route path="/" element={<LandingPage />} />
