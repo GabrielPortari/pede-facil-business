@@ -5,6 +5,7 @@ export enum OrderStatus {
   PaidAwaitingDelivery = "paid_awaiting_delivery",
   Delivered = "delivered",
   CustomerConfirmed = "customer_confirmed",
+  CustomerDeclined = "customer_declined",
   CustomerCancelled = "customer_cancelled",
   BusinessCancelled = "business_cancelled",
 }

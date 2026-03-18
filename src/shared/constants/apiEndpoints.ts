@@ -26,5 +26,7 @@ export const API_ENDPOINTS = {
   },
   orders: {
     byAuthenticatedBusiness: `${baseUrl}/business/me/orders`,
+    statusByAuthenticatedBusiness: (orderId: string) =>
+      `${baseUrl}/business/me/orders/${orderId}/status`,
   },
 } as const;

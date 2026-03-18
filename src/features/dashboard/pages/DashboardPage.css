@@ -899,6 +899,29 @@
   overflow-wrap: anywhere;
 }
 
+.orders-action-row {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.orders-action-description {
+  margin: 0;
+  color: var(--pf-color-secondary-700);
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.orders-action-buttons {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 @media (max-width: 900px) {
   .orders-filters {
     width: 100%;

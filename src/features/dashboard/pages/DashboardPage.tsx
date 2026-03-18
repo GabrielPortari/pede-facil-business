@@ -12,6 +12,7 @@ import { useDeleteProduct } from "../hooks/useDeleteProduct";
 import { usePromotedProducts } from "../hooks/usePromotedProducts";
 import { useProductsWithoutPromotion } from "../hooks/useProductsWithoutPromotion";
 import { useBusinessOrders } from "../hooks/useBusinessOrders";
+import { updateBusinessOrderStatusRequest } from "../services/orderService";
 import { useUpdateProduct } from "../hooks/useUpdateProduct";
 import { useUpdateProductPromotion } from "../hooks/useUpdateProductPromotion";
 import type {
@@ -21,6 +22,7 @@ import type {
   UpdateProductPayload,
 } from "../types/product.type";
 import {
+  OrderStatus,
   OrderStatusFilterValue,
   type OrderStatusFilter,
 } from "../types/order.type";
@@ -183,6 +185,8 @@ export default function DashboardPage() {
     OrderStatusFilterValue.All,
   );
   const [orderLimit, setOrderLimit] = useState(50);
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+  const [orderStatusUpdateError, setOrderStatusUpdateError] = useState("");
 
   const {
     products,
@@ -656,6 +660,28 @@ export default function DashboardPage() {
     }
   }
 
+  async function handleUpdateOrderStatus(
+    orderId: string,
+    status: OrderStatus,
+  ): Promise<void> {
+    try {
+      setUpdatingOrderId(orderId);
+      setOrderStatusUpdateError("");
+
+      await updateBusinessOrderStatusRequest(orderId, {
+        status,
+      });
+
+      await reloadOrders();
+    } catch {
+      setOrderStatusUpdateError(
+        "Não foi possível atualizar o status do pedido.",
+      );
+    } finally {
+      setUpdatingOrderId(null);
+    }
+  }
+
   return (
     <main className="dashboard-page">
       <DashboardOperations
@@ -701,7 +727,13 @@ export default function DashboardPage() {
         isOrdersLoading={isOrdersLoading}
         ordersError={ordersError}
         onReloadOrders={() => {
+          setOrderStatusUpdateError("");
           void reloadOrders();
+        }}
+        orderStatusUpdateError={orderStatusUpdateError}
+        updatingOrderId={updatingOrderId}
+        onUpdateOrderStatus={(orderId, status) => {
+          void handleUpdateOrderStatus(orderId, status);
         }}
         orderStatusFilter={orderStatusFilter}
         onOrderStatusFilterChange={setOrderStatusFilter}

@@ -6,7 +6,12 @@ import {
 import type {
   BusinessOrder,
   GetBusinessOrdersParams,
+  OrderStatus,
 } from "../types/order.type";
+
+interface UpdateBusinessOrderStatusPayload {
+  status: OrderStatus;
+}
 
 function clampOrderLimit(limit?: number): number {
   const fallbackLimit = 50;
@@ -64,4 +69,18 @@ export async function getBusinessOrdersRequest(
       },
     );
   }
+}
+
+export async function updateBusinessOrderStatusRequest(
+  orderId: string,
+  payload: UpdateBusinessOrderStatusPayload,
+): Promise<BusinessOrder> {
+  return serviceRequest<BusinessOrder, UpdateBusinessOrderStatusPayload>(
+    API_ENDPOINTS.orders.statusByAuthenticatedBusiness(orderId),
+    {
+      method: "PATCH",
+      body: payload,
+      errorMessage: "Update order status failed",
+    },
+  );
 }

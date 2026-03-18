@@ -10,6 +10,7 @@ const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   [OrderStatus.PaidAwaitingDelivery]: "Pago, aguardando entrega",
   [OrderStatus.Delivered]: "Entregue",
   [OrderStatus.CustomerConfirmed]: "Confirmado pelo cliente",
+  [OrderStatus.CustomerDeclined]: "Cliente não recebeu",
   [OrderStatus.CustomerCancelled]: "Cancelado pelo cliente",
   [OrderStatus.BusinessCancelled]: "Cancelado pelo estabelecimento",
 };
@@ -34,6 +35,10 @@ const ORDER_STATUS_FILTER_OPTIONS: Array<{
   {
     value: OrderStatus.CustomerConfirmed,
     label: ORDER_STATUS_LABELS[OrderStatus.CustomerConfirmed],
+  },
+  {
+    value: OrderStatus.CustomerDeclined,
+    label: ORDER_STATUS_LABELS[OrderStatus.CustomerDeclined],
   },
   {
     value: OrderStatus.CustomerCancelled,
@@ -91,6 +96,9 @@ interface OrdersPanelProps {
   isOrdersLoading: boolean;
   ordersError: string;
   onReloadOrders: () => void;
+  orderStatusUpdateError: string;
+  updatingOrderId: string | null;
+  onUpdateOrderStatus: (orderId: string, status: OrderStatus) => void;
   formatPrice: (amountInCents: number) => string;
   statusFilter: OrderStatusFilter;
   onStatusFilterChange: (value: OrderStatusFilter) => void;
@@ -98,11 +106,72 @@ interface OrdersPanelProps {
   onLimitChange: (value: number) => void;
 }
 
+interface OrderAction {
+  label: string;
+  description: string;
+  nextStatus: OrderStatus;
+  variant: "primary" | "danger";
+}
+
+function getOrderActionsByStatus(status: OrderStatus): OrderAction[] {
+  if (status === OrderStatus.PaymentPending) {
+    return [
+      {
+        label: "Marcar como pago",
+        description: "Pagamento confirmado. Pedido segue para entrega.",
+        nextStatus: OrderStatus.PaidAwaitingDelivery,
+        variant: "primary",
+      },
+      {
+        label: "Cancelar pedido",
+        description: "Cancelar pedido com pagamento pendente.",
+        nextStatus: OrderStatus.BusinessCancelled,
+        variant: "danger",
+      },
+    ];
+  }
+
+  if (status === OrderStatus.PaidAwaitingDelivery) {
+    return [
+      {
+        label: "Marcar como entregue",
+        description:
+          "Produto entregue ao cliente. Agora o cliente precisa confirmar o recebimento.",
+        nextStatus: OrderStatus.Delivered,
+        variant: "primary",
+      },
+      {
+        label: "Cancelar pedido",
+        description: "Cancelar pedido que estava aguardando entrega.",
+        nextStatus: OrderStatus.BusinessCancelled,
+        variant: "danger",
+      },
+    ];
+  }
+
+  if (status === OrderStatus.CustomerDeclined) {
+    return [
+      {
+        label: "Cancelar pedido",
+        description:
+          "Cliente informou não recebimento. Cancele o pedido para finalizar o fluxo.",
+        nextStatus: OrderStatus.BusinessCancelled,
+        variant: "danger",
+      },
+    ];
+  }
+
+  return [];
+}
+
 export function OrdersPanel({
   orders,
   isOrdersLoading,
   ordersError,
   onReloadOrders,
+  orderStatusUpdateError,
+  updatingOrderId,
+  onUpdateOrderStatus,
   formatPrice,
   statusFilter,
   onStatusFilterChange,
@@ -171,6 +240,12 @@ export function OrdersPanel({
         </div>
       ) : null}
 
+      {orderStatusUpdateError ? (
+        <div className="dashboard-products-feedback dashboard-products-feedback-error">
+          <p>{orderStatusUpdateError}</p>
+        </div>
+      ) : null}
+
       {!ordersError && isOrdersLoading ? (
         <div className="dashboard-products-feedback">
           <p>Carregando pedidos...</p>
@@ -185,76 +260,110 @@ export function OrdersPanel({
 
       {orders.length ? (
         <div className="orders-list">
-          {orders.map((order) => (
-            <article key={order.id} className="orders-card">
-              <div className="orders-card-top">
-                <div>
-                  <h3>Pedido {order.clientOrderId}</h3>
-                </div>
-                <span className="orders-status">
-                  {ORDER_STATUS_LABELS[order.status]}
-                </span>
-              </div>
+          {orders.map((order) => {
+            const orderActions = getOrderActionsByStatus(order.status);
 
-              <dl className="orders-meta">
-                <div>
-                  <dt>Cliente</dt>
-                  <dd>{order.userName?.trim() || order.userId}</dd>
+            return (
+              <article key={order.id} className="orders-card">
+                <div className="orders-card-top">
+                  <div>
+                    <h3>Pedido {order.clientOrderId}</h3>
+                  </div>
+                  <span className="orders-status">
+                    {ORDER_STATUS_LABELS[order.status]}
+                  </span>
                 </div>
-                <div>
-                  <dt>Hora do pedido</dt>
-                  <dd>{formatOrderTime(order.createdAt)}</dd>
-                </div>
-                <div>
-                  <dt>Método de pagamento</dt>
-                  <dd>{order.paymentMethod}</dd>
-                </div>
-                <div>
-                  <dt>Total</dt>
-                  <dd>{formatPrice(order.totalPrice.amount)}</dd>
-                </div>
-              </dl>
 
-              <div className="orders-items">
-                <h4>Itens</h4>
-                <div className="orders-items-list">
-                  {order.items.map((item) => (
-                    <article
-                      key={`${order.id}-${item.productId}-${item.name}`}
-                      className="orders-item"
-                    >
-                      <p className="orders-item-title">{item.name}</p>
-                      <dl>
-                        <div>
-                          <dt>Quantidade</dt>
-                          <dd>{item.quantity}</dd>
-                        </div>
-                        <div>
-                          <dt>Unitário</dt>
-                          <dd>{formatPrice(item.unitPrice.amount)}</dd>
-                        </div>
-                        <div>
-                          <dt>Subtotal</dt>
-                          <dd>{formatPrice(item.subtotal.amount)}</dd>
-                        </div>
-                      </dl>
-                    </article>
-                  ))}
-                </div>
-              </div>
+                <dl className="orders-meta">
+                  <div>
+                    <dt>Cliente</dt>
+                    <dd>{order.userName?.trim() || order.userId}</dd>
+                  </div>
+                  <div>
+                    <dt>Hora do pedido</dt>
+                    <dd>{formatOrderTime(order.createdAt)}</dd>
+                  </div>
+                  <div>
+                    <dt>Método de pagamento</dt>
+                    <dd>{order.paymentMethod}</dd>
+                  </div>
+                  <div>
+                    <dt>Total</dt>
+                    <dd>{formatPrice(order.totalPrice.amount)}</dd>
+                  </div>
+                </dl>
 
-              <dl className="orders-notes">
-                <div>
-                  <dt>Observações</dt>
-                  <dd>{order.observations ?? "-"}</dd>
+                <div className="orders-items">
+                  <h4>Itens</h4>
+                  <div className="orders-items-list">
+                    {order.items.map((item) => (
+                      <article
+                        key={`${order.id}-${item.productId}-${item.name}`}
+                        className="orders-item"
+                      >
+                        <p className="orders-item-title">{item.name}</p>
+                        <dl>
+                          <div>
+                            <dt>Quantidade</dt>
+                            <dd>{item.quantity}</dd>
+                          </div>
+                          <div>
+                            <dt>Unitário</dt>
+                            <dd>{formatPrice(item.unitPrice.amount)}</dd>
+                          </div>
+                          <div>
+                            <dt>Subtotal</dt>
+                            <dd>{formatPrice(item.subtotal.amount)}</dd>
+                          </div>
+                        </dl>
+                      </article>
+                    ))}
+                  </div>
                 </div>
-                <div>
-                  <dt>Última atualização</dt>
-                  <dd>{formatOrderTimestamp(order.updatedAt)}</dd>
-                </div>
-              </dl>
-            </article>
-          ))}
+
+                <dl className="orders-notes">
+                  <div>
+                    <dt>Observações</dt>
+                    <dd>{order.observations ?? "-"}</dd>
+                  </div>
+                  <div>
+                    <dt>Última atualização</dt>
+                    <dd>{formatOrderTimestamp(order.updatedAt)}</dd>
+                  </div>
+                </dl>
+
+                {orderActions.length ? (
+                  <div className="orders-action-row">
+                    <p className="orders-action-description">
+                      {orderActions[0].description}
+                    </p>
+
+                    <div className="orders-action-buttons">
+                      {orderActions.map((action) => (
+                        <button
+                          key={`${order.id}-${action.nextStatus}`}
+                          type="button"
+                          className={
+                            action.variant === "danger"
+                              ? "dashboard-danger-button"
+                              : "dashboard-primary-button"
+                          }
+                          onClick={() =>
+                            onUpdateOrderStatus(order.id, action.nextStatus)
+                          }
+                          disabled={updatingOrderId === order.id}
+                        >
+                          {updatingOrderId === order.id
+                            ? "Atualizando..."
+                            : action.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </article>
+            );
+          })}
         </div>
       ) : null}
     </article>
