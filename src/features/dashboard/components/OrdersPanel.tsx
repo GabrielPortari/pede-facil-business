@@ -178,6 +178,11 @@ export function OrdersPanel({
   limit,
   onLimitChange,
 }: OrdersPanelProps) {
+  const displayedOrders =
+    statusFilter === OrderStatusFilterValue.All
+      ? orders
+      : orders.filter((order) => order.status === statusFilter);
+
   return (
     <article className="dashboard-panel">
       <div className="dashboard-products-header">
@@ -252,15 +257,15 @@ export function OrdersPanel({
         </div>
       ) : null}
 
-      {!ordersError && !isOrdersLoading && !orders.length ? (
+      {!ordersError && !isOrdersLoading && !displayedOrders.length ? (
         <div className="dashboard-products-feedback">
           <p>Nenhum pedido encontrado.</p>
         </div>
       ) : null}
 
-      {orders.length ? (
+      {displayedOrders.length ? (
         <div className="orders-list">
-          {orders.map((order) => {
+          {displayedOrders.map((order) => {
             const orderActions = getOrderActionsByStatus(order.status);
 
             return (
