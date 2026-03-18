@@ -1,11 +1,8 @@
 import { useState } from "react";
 import { DashboardOverview } from "./DashboardOverview";
 import { OrdersPanel } from "./OrdersPanel";
-import type {
-  BusinessOrder,
-  OrderStatus,
-  OrderStatusFilter,
-} from "../types/order.type";
+import { OrderStatus } from "../types/order.type";
+import type { BusinessOrder, OrderStatusFilter } from "../types/order.type";
 
 const OPERATION_MENU = [
   { key: "overview", label: "Visão geral" },
@@ -275,7 +272,7 @@ export function DashboardOperations({
 
         {activeTab === "orders" ? (
           <OrdersPanel
-            orders={operationalOrders}
+            orders={orders}
             isOrdersLoading={isOrdersLoading}
             ordersError={ordersError}
             onReloadOrders={onReloadOrders}
