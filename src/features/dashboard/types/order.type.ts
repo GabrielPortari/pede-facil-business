@@ -1,14 +1,19 @@
 import type { MoneyPayload } from "./product.type";
 
-export type OrderStatus =
-  | "payment_pending"
-  | "paid_awaiting_delivery"
-  | "delivered"
-  | "customer_confirmed"
-  | "customer_cancelled"
-  | "business_cancelled";
+export enum OrderStatus {
+  PaymentPending = "payment_pending",
+  PaidAwaitingDelivery = "paid_awaiting_delivery",
+  Delivered = "delivered",
+  CustomerConfirmed = "customer_confirmed",
+  CustomerCancelled = "customer_cancelled",
+  BusinessCancelled = "business_cancelled",
+}
 
-export type OrderStatusFilter = OrderStatus | "all";
+export enum OrderStatusFilterValue {
+  All = "all",
+}
+
+export type OrderStatusFilter = OrderStatus | OrderStatusFilterValue.All;
 
 export interface OrderItem {
   productId: string;

@@ -1,4 +1,49 @@
-import type { BusinessOrder, OrderStatusFilter } from "../types/order.type";
+import {
+  OrderStatus,
+  OrderStatusFilterValue,
+  type BusinessOrder,
+  type OrderStatusFilter,
+} from "../types/order.type";
+
+const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+  [OrderStatus.PaymentPending]: "Pagamento pendente",
+  [OrderStatus.PaidAwaitingDelivery]: "Pago, aguardando entrega",
+  [OrderStatus.Delivered]: "Entregue",
+  [OrderStatus.CustomerConfirmed]: "Confirmado pelo cliente",
+  [OrderStatus.CustomerCancelled]: "Cancelado pelo cliente",
+  [OrderStatus.BusinessCancelled]: "Cancelado pelo estabelecimento",
+};
+
+const ORDER_STATUS_FILTER_OPTIONS: Array<{
+  value: OrderStatusFilter;
+  label: string;
+}> = [
+  { value: OrderStatusFilterValue.All, label: "Todos os status" },
+  {
+    value: OrderStatus.PaymentPending,
+    label: ORDER_STATUS_LABELS[OrderStatus.PaymentPending],
+  },
+  {
+    value: OrderStatus.PaidAwaitingDelivery,
+    label: ORDER_STATUS_LABELS[OrderStatus.PaidAwaitingDelivery],
+  },
+  {
+    value: OrderStatus.Delivered,
+    label: ORDER_STATUS_LABELS[OrderStatus.Delivered],
+  },
+  {
+    value: OrderStatus.CustomerConfirmed,
+    label: ORDER_STATUS_LABELS[OrderStatus.CustomerConfirmed],
+  },
+  {
+    value: OrderStatus.CustomerCancelled,
+    label: ORDER_STATUS_LABELS[OrderStatus.CustomerCancelled],
+  },
+  {
+    value: OrderStatus.BusinessCancelled,
+    label: ORDER_STATUS_LABELS[OrderStatus.BusinessCancelled],
+  },
+];
 
 function formatOrderTimestamp(value: BusinessOrder["createdAt"]): string {
   const seconds = value?._seconds;
@@ -84,15 +129,11 @@ export function OrdersPanel({
               }
               aria-label="Filtrar pedidos por status"
             >
-              <option value="all">Todos os status</option>
-              <option value="payment_pending">payment_pending</option>
-              <option value="paid_awaiting_delivery">
-                paid_awaiting_delivery
-              </option>
-              <option value="delivered">delivered</option>
-              <option value="customer_confirmed">customer_confirmed</option>
-              <option value="customer_cancelled">customer_cancelled</option>
-              <option value="business_cancelled">business_cancelled</option>
+              {ORDER_STATUS_FILTER_OPTIONS.map((statusOption) => (
+                <option key={statusOption.value} value={statusOption.value}>
+                  {statusOption.label}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -150,7 +191,9 @@ export function OrdersPanel({
                 <div>
                   <h3>Pedido {order.clientOrderId}</h3>
                 </div>
-                <span className="orders-status">{order.status}</span>
+                <span className="orders-status">
+                  {ORDER_STATUS_LABELS[order.status]}
+                </span>
               </div>
 
               <dl className="orders-meta">

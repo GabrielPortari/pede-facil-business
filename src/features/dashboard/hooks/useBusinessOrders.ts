@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { getBusinessOrdersRequest } from "../services/orderService";
-import type { BusinessOrder, OrderStatusFilter } from "../types/order.type";
+import {
+  OrderStatusFilterValue,
+  type BusinessOrder,
+  type OrderStatusFilter,
+} from "../types/order.type";
 import { ServiceRequestError } from "../../../shared/lib/serviceRequest";
 
 function normalizeLimit(value: number): number {
@@ -22,7 +26,7 @@ export function useBusinessOrders(status: OrderStatusFilter, limit: number) {
       setErrorMessage("");
 
       const nextOrders = await getBusinessOrdersRequest({
-        status: status === "all" ? undefined : status,
+        status: status === OrderStatusFilterValue.All ? undefined : status,
         limit: normalizeLimit(limit) === 50 ? undefined : normalizeLimit(limit),
       });
 

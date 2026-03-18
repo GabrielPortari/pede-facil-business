@@ -20,7 +20,10 @@ import type {
   PromotionType,
   UpdateProductPayload,
 } from "../types/product.type";
-import type { OrderStatusFilter } from "../types/order.type";
+import {
+  OrderStatusFilterValue,
+  type OrderStatusFilter,
+} from "../types/order.type";
 import "./DashboardPage.css";
 
 function formatPriceInput(rawValue: string): string {
@@ -176,8 +179,9 @@ export default function DashboardPage() {
   const [usePromotionStock, setUsePromotionStock] = useState(false);
   const [promotionStock, setPromotionStock] = useState("");
   const [isPromotionSubmitted, setIsPromotionSubmitted] = useState(false);
-  const [orderStatusFilter, setOrderStatusFilter] =
-    useState<OrderStatusFilter>("all");
+  const [orderStatusFilter, setOrderStatusFilter] = useState<OrderStatusFilter>(
+    OrderStatusFilterValue.All,
+  );
   const [orderLimit, setOrderLimit] = useState(50);
 
   const {
