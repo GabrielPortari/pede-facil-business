@@ -15,10 +15,14 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const hasAuthenticatedSession = isAuthenticatedSession();
 
   if (!token) {
-    if (hasAuthenticatedSession) {
+    if (!hasAuthenticatedSession) {
       setSessionExpiredNotice();
+      return <Navigate to="/login" replace />;
     }
-    return <Navigate to="/login" replace />;
+
+    // Authenticated session without a token: likely in initialization/refresh state.
+    // Avoid redirecting or showing an expired notice; render a placeholder instead.
+    return null;
   }
 
   return children;
