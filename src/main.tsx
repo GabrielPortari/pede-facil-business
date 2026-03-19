@@ -13,7 +13,11 @@ if (!rootElement) {
 
 const rootContainer = rootElement;
 
-function bootstrapApp() {
+async function bootstrapApp() {
+  // Initialize auth session before rendering to avoid premature redirects
+  // on protected routes while a refresh is in progress.
+  await initializeAuthSession();
+
   createRoot(rootContainer).render(
     <StrictMode>
       <BrowserRouter>
@@ -21,10 +25,6 @@ function bootstrapApp() {
       </BrowserRouter>
     </StrictMode>,
   );
-
-  // Initialize session asynchronously without blocking the initial render.
-  // The app handles loading and unauthenticated states internally.
-  void initializeAuthSession();
 }
 
 bootstrapApp();
