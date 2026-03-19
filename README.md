@@ -25,6 +25,8 @@ npm run dev
 
 Aplicação disponível em `http://localhost:5173`.
 
+Observação: o projeto não possui script `start`; para desenvolvimento use `npm run dev`.
+
 ## Scripts disponíveis
 
 ```bash
@@ -60,7 +62,36 @@ Exemplo:
 - CRUD de produtos do negócio
 - Gestão de promoções
 - Operação de pedidos com filtros por status e limite
+- Atualização de status de pedidos com fluxo operacional no dashboard
+- Confirmação manual de pagamento para cenário de falha no gateway
+- Reentrega para pedidos em `customer_declined`, com retorno para `delivered`
+- Visão geral do dashboard separada por tópicos: catálogo, pedidos, financeiro e alertas
+- Aba `Financeiro` com indicadores e distribuição de valores por status dos pedidos
 - Status de pedidos tipados com enum e exibidos com rótulos amigáveis na interface
+
+## Operações no dashboard
+
+Menu operacional disponível na rota `/dashboard`:
+
+- `Visão geral`: cards principais por tópico (catálogo, pedidos, financeiro e alertas)
+- `Pedidos`: gestão operacional de pedidos com ações por status
+- `Financeiro`: resumo de faturamento, ticket médio e breakdown por status
+- `Produtos cadastrados`: listagem, filtros e ações de edição/exclusão
+- `Promoções`: gestão de promoções ativas e produtos sem promoção
+- `Informação de pedidos`: pedidos fora do fluxo operacional imediato
+
+### Fluxo manual em falha de gateway
+
+Quando um pedido está em `payment_pending`, a ação `Marcar como pago` solicita confirmação manual antes de enviar a mudança para `paid_awaiting_delivery`.
+
+Use esse fluxo apenas quando o gateway de pagamento falhar e o recebimento tiver sido validado fora da plataforma.
+
+### Fluxo de reentrega
+
+Quando um pedido está em `customer_declined`, o painel oferece:
+
+- `Confirmar nova entrega`: altera o status para `delivered`
+- `Cancelar pedido`: altera o status para `business_cancelled`
 
 ## Estrutura do projeto
 
@@ -119,3 +150,4 @@ Alguns endpoints já mapeados no frontend:
 
 - Não há suíte de testes automatizados configurada neste momento.
 - O lint deve ser executado antes de abrir PR para manter o padrão do código.
+- A inicialização de sessão no bootstrap atual pode depender da disponibilidade do backend para renderizar rotas protegidas.
