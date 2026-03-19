@@ -113,6 +113,27 @@ interface OrderAction {
   variant: "primary" | "danger";
 }
 
+function shouldConfirmManualPayment(
+  order: BusinessOrder,
+  action: OrderAction,
+): boolean {
+  const isManualPaymentConfirmation =
+    order.status === OrderStatus.PaymentPending &&
+    action.nextStatus === OrderStatus.PaidAwaitingDelivery;
+
+  if (!isManualPaymentConfirmation) {
+    return true;
+  }
+
+  if (typeof window === "undefined") {
+    return true;
+  }
+
+  return window.confirm(
+    "Confirmar pagamento manualmente? Use esta opção apenas quando o gateway de pagamento falhar e você já tiver validado o recebimento fora da plataforma.",
+  );
+}
+
 function getOrderActionsByStatus(status: OrderStatus): OrderAction[] {
   if (status === OrderStatus.PaymentPending) {
     return [
@@ -151,6 +172,13 @@ function getOrderActionsByStatus(status: OrderStatus): OrderAction[] {
 
   if (status === OrderStatus.CustomerDeclined) {
     return [
+      {
+        label: "Confirmar nova entrega",
+        description:
+          "Confirme quando a nova tentativa de entrega for concluída para que o cliente possa confirmar o recebimento.",
+        nextStatus: OrderStatus.Delivered,
+        variant: "primary",
+      },
       {
         label: "Cancelar pedido",
         description:
@@ -363,9 +391,13 @@ export function OrdersPanel({
                               ? "dashboard-danger-button"
                               : "dashboard-primary-button"
                           }
-                          onClick={() =>
-                            onUpdateOrderStatus(order.id, action.nextStatus)
-                          }
+                          onClick={() => {
+                            if (!shouldConfirmManualPayment(order, action)) {
+                              return;
+                            }
+
+                            onUpdateOrderStatus(order.id, action.nextStatus);
+                          }}
                           disabled={updatingOrderId === order.id}
                         >
                           {updatingOrderId === order.id
