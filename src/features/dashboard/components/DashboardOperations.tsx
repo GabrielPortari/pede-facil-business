@@ -7,6 +7,7 @@ import type { BusinessOrder, OrderStatusFilter } from "../types/order.type";
 const OPERATION_MENU = [
   { key: "overview", label: "Visão geral" },
   { key: "orders", label: "Pedidos" },
+  { key: "financeiro", label: "Financeiro" },
   { key: "products", label: "Produtos cadastrados" },
   { key: "promotions", label: "Promoções" },
   { key: "order-info", label: "Informação de pedidos" },
@@ -230,6 +231,7 @@ export function DashboardOperations({
   const enabledTabs: OperationMenuKey[] = [
     "overview",
     "orders",
+    "financeiro",
     "products",
     "promotions",
     "order-info",
@@ -304,6 +306,237 @@ export function DashboardOperations({
             limit={orderLimit}
             onLimitChange={onOrderLimitChange}
           />
+        ) : null}
+
+        {activeTab === "financeiro" ? (
+          <article className="dashboard-panel">
+            <div className="dashboard-products-header">
+              <div>
+                <h2>Financeiro</h2>
+                <p className="dashboard-products-subtitle">
+                  Análise completa de receita e faturamento baseada nos pedidos.
+                </p>
+              </div>
+
+              <div className="dashboard-products-actions">
+                <button
+                  type="button"
+                  className="dashboard-secondary-button"
+                  onClick={onReloadOrders}
+                  disabled={isOrdersLoading}
+                >
+                  {isOrdersLoading ? "Atualizando..." : "Atualizar dados"}
+                </button>
+              </div>
+            </div>
+
+            {ordersError ? (
+              <div className="dashboard-products-feedback dashboard-products-feedback-error">
+                <p>{ordersError}</p>
+              </div>
+            ) : null}
+
+            {!ordersError && isOrdersLoading ? (
+              <div className="dashboard-products-feedback">
+                <p>Carregando dados financeiros...</p>
+              </div>
+            ) : null}
+
+            {!ordersError && !isOrdersLoading ? (
+              <>
+                <section className="financial-summary">
+                  <article className="financial-card">
+                    <h3>Faturamento total</h3>
+                    <strong className="financial-value-primary">
+                      {formatPrice(orderOverviewStats.revenueInCents)}
+                    </strong>
+                    <p className="financial-card-note">
+                      {
+                        orders.filter(
+                          (o) =>
+                            o.status !== OrderStatus.PaymentPending &&
+                            ![
+                              OrderStatus.CustomerCancelled,
+                              OrderStatus.BusinessCancelled,
+                            ].includes(o.status),
+                        ).length
+                      }{" "}
+                      pedidos
+                    </p>
+                  </article>
+
+                  <article className="financial-card">
+                    <h3>Ticket médio</h3>
+                    <strong className="financial-value-primary">
+                      {formatPrice(orderOverviewStats.averageTicketInCents)}
+                    </strong>
+                    <p className="financial-card-note">Por pedido pago</p>
+                  </article>
+
+                  <article className="financial-card">
+                    <h3>Pedidos hoje</h3>
+                    <strong className="financial-value-secondary">
+                      {orderOverviewStats.ordersToday}
+                    </strong>
+                    <p className="financial-card-note">
+                      Independente de status
+                    </p>
+                  </article>
+                </section>
+
+                <section className="financial-breakdown">
+                  <h3>Distribuição por status</h3>
+                  <div className="financial-status-grid">
+                    <article className="financial-status-card">
+                      <header className="financial-status-header">
+                        <h4>Pagamento pendente</h4>
+                        <span className="financial-status-count">
+                          {
+                            orders.filter(
+                              (o) => o.status === OrderStatus.PaymentPending,
+                            ).length
+                          }
+                        </span>
+                      </header>
+                      <p className="financial-status-amount">
+                        {formatPrice(
+                          orders
+                            .filter(
+                              (o) => o.status === OrderStatus.PaymentPending,
+                            )
+                            .reduce((sum, o) => sum + o.totalPrice.amount, 0),
+                        )}
+                      </p>
+                      <p className="financial-status-note">À receber</p>
+                    </article>
+
+                    <article className="financial-status-card">
+                      <header className="financial-status-header">
+                        <h4>Pago, aguardando entrega</h4>
+                        <span className="financial-status-count">
+                          {
+                            orders.filter(
+                              (o) =>
+                                o.status === OrderStatus.PaidAwaitingDelivery,
+                            ).length
+                          }
+                        </span>
+                      </header>
+                      <p className="financial-status-amount">
+                        {formatPrice(
+                          orders
+                            .filter(
+                              (o) =>
+                                o.status === OrderStatus.PaidAwaitingDelivery,
+                            )
+                            .reduce((sum, o) => sum + o.totalPrice.amount, 0),
+                        )}
+                      </p>
+                      <p className="financial-status-note">Entrega pendente</p>
+                    </article>
+
+                    <article className="financial-status-card">
+                      <header className="financial-status-header">
+                        <h4>Entregue</h4>
+                        <span className="financial-status-count">
+                          {
+                            orders.filter(
+                              (o) => o.status === OrderStatus.Delivered,
+                            ).length
+                          }
+                        </span>
+                      </header>
+                      <p className="financial-status-amount">
+                        {formatPrice(
+                          orders
+                            .filter((o) => o.status === OrderStatus.Delivered)
+                            .reduce((sum, o) => sum + o.totalPrice.amount, 0),
+                        )}
+                      </p>
+                      <p className="financial-status-note">
+                        Confirmação pendente
+                      </p>
+                    </article>
+
+                    <article className="financial-status-card">
+                      <header className="financial-status-header">
+                        <h4>Confirmado</h4>
+                        <span className="financial-status-count">
+                          {
+                            orders.filter(
+                              (o) => o.status === OrderStatus.CustomerConfirmed,
+                            ).length
+                          }
+                        </span>
+                      </header>
+                      <p className="financial-status-amount">
+                        {formatPrice(
+                          orders
+                            .filter(
+                              (o) => o.status === OrderStatus.CustomerConfirmed,
+                            )
+                            .reduce((sum, o) => sum + o.totalPrice.amount, 0),
+                        )}
+                      </p>
+                      <p className="financial-status-note">
+                        Transação finalizada
+                      </p>
+                    </article>
+
+                    <article className="financial-status-card financial-status-card-decline">
+                      <header className="financial-status-header">
+                        <h4>Cliente não recebeu</h4>
+                        <span className="financial-status-count">
+                          {
+                            orders.filter(
+                              (o) => o.status === OrderStatus.CustomerDeclined,
+                            ).length
+                          }
+                        </span>
+                      </header>
+                      <p className="financial-status-amount">
+                        {formatPrice(
+                          orders
+                            .filter(
+                              (o) => o.status === OrderStatus.CustomerDeclined,
+                            )
+                            .reduce((sum, o) => sum + o.totalPrice.amount, 0),
+                        )}
+                      </p>
+                      <p className="financial-status-note">Em litígio</p>
+                    </article>
+
+                    <article className="financial-status-card financial-status-card-cancel">
+                      <header className="financial-status-header">
+                        <h4>Cancelados</h4>
+                        <span className="financial-status-count">
+                          {
+                            orders.filter(
+                              (o) =>
+                                o.status === OrderStatus.CustomerCancelled ||
+                                o.status === OrderStatus.BusinessCancelled,
+                            ).length
+                          }
+                        </span>
+                      </header>
+                      <p className="financial-status-amount">
+                        {formatPrice(
+                          orders
+                            .filter(
+                              (o) =>
+                                o.status === OrderStatus.CustomerCancelled ||
+                                o.status === OrderStatus.BusinessCancelled,
+                            )
+                            .reduce((sum, o) => sum + o.totalPrice.amount, 0),
+                        )}
+                      </p>
+                      <p className="financial-status-note">Sem receita</p>
+                    </article>
+                  </div>
+                </section>
+              </>
+            ) : null}
+          </article>
         ) : null}
 
         {activeTab === "order-info" ? (
