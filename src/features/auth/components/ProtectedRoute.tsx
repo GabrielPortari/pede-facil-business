@@ -14,8 +14,10 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const token = getStoredAccessToken();
   const hasAuthenticatedSession = isAuthenticatedSession();
 
-  if (!token && !hasAuthenticatedSession) {
-    setSessionExpiredNotice();
+  if (!token) {
+    if (hasAuthenticatedSession) {
+      setSessionExpiredNotice();
+    }
     return <Navigate to="/login" replace />;
   }
 

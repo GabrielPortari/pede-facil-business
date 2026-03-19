@@ -13,9 +13,7 @@ if (!rootElement) {
 
 const rootContainer = rootElement;
 
-async function bootstrapApp() {
-  await initializeAuthSession();
-
+function bootstrapApp() {
   createRoot(rootContainer).render(
     <StrictMode>
       <BrowserRouter>
@@ -23,6 +21,10 @@ async function bootstrapApp() {
       </BrowserRouter>
     </StrictMode>,
   );
+
+  // Initialize session asynchronously without blocking the initial render.
+  // The app handles loading and unauthenticated states internally.
+  void initializeAuthSession();
 }
 
-void bootstrapApp();
+bootstrapApp();

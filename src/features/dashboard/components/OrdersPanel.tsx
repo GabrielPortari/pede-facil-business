@@ -347,9 +347,11 @@ export function OrdersPanel({
 
                 {orderActions.length ? (
                   <div className="orders-action-row">
-                    <p className="orders-action-description">
-                      {orderActions[0].description}
-                    </p>
+                    {orderActions.length === 1 && (
+                      <p className="orders-action-description">
+                        {orderActions[0].description}
+                      </p>
+                    )}
 
                     <div className="orders-action-buttons">
                       {orderActions.map((action) => (
