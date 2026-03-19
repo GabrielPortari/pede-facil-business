@@ -10,6 +10,7 @@ interface ProductOption {
 interface PromotionModalProps {
   isOpen: boolean;
   isLoading: boolean;
+  isEditing: boolean;
   serverError: string;
   successMessage: string;
   promotionProductId: string;
@@ -41,6 +42,7 @@ interface PromotionModalProps {
 export function PromotionModal({
   isOpen,
   isLoading,
+  isEditing,
   serverError,
   successMessage,
   promotionProductId,
@@ -87,7 +89,7 @@ export function PromotionModal({
       >
         <div className="dashboard-modal-header">
           <div>
-            <h2>Aplicar promoção</h2>
+            <h2>{isEditing ? "Alterar promoção" : "Aplicar promoção"}</h2>
             <p>Atualize a promoção de um produto com base no seu DTO.</p>
           </div>
           <button
@@ -107,6 +109,7 @@ export function PromotionModal({
               id="promotion-product-id"
               value={promotionProductId}
               onChange={(event) => onProductChange(event.target.value)}
+              disabled={isEditing}
               aria-invalid={Boolean(promotionProductIdError)}
               aria-describedby={
                 promotionProductIdError
@@ -248,7 +251,13 @@ export function PromotionModal({
           {successMessage && <p className="form-success">{successMessage}</p>}
 
           <button type="submit" disabled={isLoading || !isPromotionFormValid}>
-            {isLoading ? "Aplicando..." : "Aplicar promoção"}
+            {isLoading
+              ? isEditing
+                ? "Alterando..."
+                : "Aplicando..."
+              : isEditing
+                ? "Alterar promoção"
+                : "Aplicar promoção"}
           </button>
         </form>
       </section>

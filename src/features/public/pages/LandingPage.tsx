@@ -1,100 +1,18 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import pedeFacilLogo from "../../../assets/pede_facil_logo.png";
+import {
+  getLoggedBusinessId,
+  isAuthenticatedSession,
+} from "../../../shared/state/authSession";
 import "./LandingPage.css";
 
 export default function LandingPage() {
-  const [activeSection, setActiveSection] = useState("inicio");
-
-  useEffect(() => {
-    const sectionIds = [
-      "inicio",
-      "quem-somos",
-      "beneficios",
-      "como-funciona",
-      "resultados",
-      "comecar",
-    ];
-
-    const sections = sectionIds
-      .map((id) => document.getElementById(id))
-      .filter((section): section is HTMLElement => section !== null);
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visibleSection = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-
-        if (visibleSection?.target?.id) {
-          setActiveSection(visibleSection.target.id);
-        }
-      },
-      {
-        threshold: [0.4, 0.6, 0.8],
-        rootMargin: "-20% 0px -30% 0px",
-      },
-    );
-
-    sections.forEach((section) => observer.observe(section));
-
-    return () => observer.disconnect();
-  }, []);
-
-  const getNavClassName = (sectionId: string) =>
-    `landing-nav-link${activeSection === sectionId ? " landing-nav-link-active" : ""}`;
+  const hasLoggedAccount = Boolean(
+    getLoggedBusinessId() || isAuthenticatedSession(),
+  );
 
   return (
     <main className="landing-page">
-      <header className="landing-nav-wrapper">
-        <nav className="landing-nav" aria-label="Navegação da página inicial">
-          <a
-            href="#inicio"
-            className={getNavClassName("inicio")}
-            aria-current={activeSection === "inicio" ? "page" : undefined}
-          >
-            Início
-          </a>
-          <a
-            href="#quem-somos"
-            className={getNavClassName("quem-somos")}
-            aria-current={activeSection === "quem-somos" ? "page" : undefined}
-          >
-            Quem somos
-          </a>
-          <a
-            href="#beneficios"
-            className={getNavClassName("beneficios")}
-            aria-current={activeSection === "beneficios" ? "page" : undefined}
-          >
-            Benefícios
-          </a>
-          <a
-            href="#como-funciona"
-            className={getNavClassName("como-funciona")}
-            aria-current={
-              activeSection === "como-funciona" ? "page" : undefined
-            }
-          >
-            Como funciona
-          </a>
-          <a
-            href="#resultados"
-            className={getNavClassName("resultados")}
-            aria-current={activeSection === "resultados" ? "page" : undefined}
-          >
-            Resultados
-          </a>
-          <a
-            href="#comecar"
-            className={getNavClassName("comecar")}
-            aria-current={activeSection === "comecar" ? "page" : undefined}
-          >
-            Começar
-          </a>
-        </nav>
-      </header>
-
       <section id="inicio" className="landing-hero">
         <div className="landing-content">
           <img
@@ -112,15 +30,26 @@ export default function LandingPage() {
             em dados.
           </p>
           <div className="landing-actions">
-            <Link
-              to="/registre-se"
-              className="landing-button landing-button-primary"
-            >
-              Começar agora
-            </Link>
-            <Link to="/login" className="landing-button">
-              Já tenho conta
-            </Link>
+            {hasLoggedAccount ? (
+              <Link
+                to="/dashboard"
+                className="landing-button landing-button-primary"
+              >
+                Ir para Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/registre-se"
+                  className="landing-button landing-button-primary"
+                >
+                  Começar agora
+                </Link>
+                <Link to="/login" className="landing-button">
+                  Já tenho conta
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -205,10 +134,10 @@ export default function LandingPage() {
             Crie sua conta e comece a usar o Pede Fácil Business hoje mesmo.
           </p>
           <Link
-            to="/registre-se"
+            to={hasLoggedAccount ? "/dashboard" : "/registre-se"}
             className="landing-button landing-button-primary"
           >
-            Registre-se agora
+            {hasLoggedAccount ? "Ir para Dashboard" : "Registre-se agora"}
           </Link>
         </div>
       </section>

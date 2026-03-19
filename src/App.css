@@ -2,6 +2,14 @@
   min-height: 100vh;
 }
 
+.app-route-content {
+  padding-top: 84px;
+}
+
+.app-route-content-no-offset {
+  padding-top: 0;
+}
+
 .page-container {
   margin: 0 auto;
   max-width: 960px;

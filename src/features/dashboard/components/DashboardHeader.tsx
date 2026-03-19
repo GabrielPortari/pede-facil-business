@@ -1,13 +1,15 @@
 interface DashboardHeaderProps {
   onOpenProductModal: () => void;
   onOpenPromotionModal: () => void;
-  onLogout: () => void;
+  onDebugAuthMe: () => void;
+  isDebugAuthMeLoading: boolean;
 }
 
 export function DashboardHeader({
   onOpenProductModal,
   onOpenPromotionModal,
-  onLogout,
+  onDebugAuthMe,
+  isDebugAuthMeLoading,
 }: DashboardHeaderProps) {
   return (
     <section className="dashboard-header">
@@ -20,9 +22,12 @@ export function DashboardHeader({
           <button
             type="button"
             className="dashboard-secondary-button"
-            onClick={onLogout}
+            onClick={onDebugAuthMe}
+            disabled={isDebugAuthMeLoading}
           >
-            Sair
+            {isDebugAuthMeLoading
+              ? "Consultando business/me..."
+              : "Debug business/me"}
           </button>
           <button
             type="button"

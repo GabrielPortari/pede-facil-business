@@ -1,3 +1,5 @@
+import { getStoredAccessToken, refreshAccessToken } from "../state/authSession";
+
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 interface ServiceRequestOptions<TBody> {
@@ -79,17 +81,34 @@ export async function serviceRequest<TResponse, TBody = unknown>(
   }
 
   try {
-    const response = await fetch(endpoint, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        ...headers,
-      },
-      body: body === undefined ? undefined : JSON.stringify(body),
-    });
+    const isRefreshEndpoint = endpoint.endsWith("/auth/refresh-auth");
+    const initialAccessToken = getStoredAccessToken();
 
-    const rawBody = await response.text();
-    const parsedBody = tryParseJson(rawBody);
+    const makeRequest = async (accessToken: string | null) =>
+      fetch(endpoint, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          ...headers,
+        },
+        body: body === undefined ? undefined : JSON.stringify(body),
+        credentials: "include",
+      });
+
+    let response = await makeRequest(initialAccessToken);
+    let rawBody = await response.text();
+    let parsedBody = tryParseJson(rawBody);
+
+    if (response.status === 401 && !isRefreshEndpoint) {
+      const refreshedAccessToken = await refreshAccessToken();
+
+      if (refreshedAccessToken) {
+        response = await makeRequest(refreshedAccessToken);
+        rawBody = await response.text();
+        parsedBody = tryParseJson(rawBody);
+      }
+    }
 
     if (!response.ok) {
       const backendMessage = getBackendMessage(parsedBody);

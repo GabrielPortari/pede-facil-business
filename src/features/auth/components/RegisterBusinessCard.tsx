@@ -5,6 +5,8 @@ import type {
   BusinessAddressPayload,
   SignupBusinessPayload,
 } from "../types/auth.type";
+import { isValidEmail } from "../../../shared/lib/validation";
+import FormFeedback from "../../../shared/ui/FormFeedback";
 import "./RegisterBusinessCard.css";
 
 interface RegisterBusinessCardProps {
@@ -153,7 +155,7 @@ export function RegisterBusinessCard({
 
   const isContactInvalid =
     contactDigits.length < 10 || contactDigits.length > 11;
-  const isEmailInvalid = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isEmailInvalid = !isValidEmail(email);
   const isPasswordInvalid = password.length < 6;
   const isConfirmPasswordInvalid =
     !confirmPassword || confirmPassword !== password;
@@ -623,13 +625,10 @@ export function RegisterBusinessCard({
             </div>
           </div>
 
-          {serverError && (
-            <p role="alert" className="form-error">
-              {serverError}
-            </p>
-          )}
-
-          {successMessage && <p className="form-success">{successMessage}</p>}
+          <FormFeedback
+            serverError={serverError}
+            successMessage={successMessage}
+          />
 
           <button type="submit" disabled={isLoading || hasErrors}>
             {isLoading ? "Cadastrando..." : "Cadastrar empresa"}

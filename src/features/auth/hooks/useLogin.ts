@@ -2,6 +2,13 @@ import { useState } from "react";
 import { loginRequest } from "../services/authService";
 import type { LoginCredentials, SubmitLoginResult } from "../types/auth.type";
 import { ServiceRequestError } from "../../../shared/lib/serviceRequest";
+import {
+  fetchAuthenticatedBusiness,
+  getAccessTokenFromNestedAuthPayload,
+  getBusinessIdFromAuthPayload,
+  refreshAccessToken,
+  setAuthSession,
+} from "../../../shared/state/authSession";
 
 export function useLogin() {
   const [isLoading, setIsLoading] = useState(false);
@@ -15,7 +22,22 @@ export function useLogin() {
       setServerError("");
 
       const result = await loginRequest(credentials);
-      localStorage.setItem("access_token", result.accessToken);
+      const accessTokenFromResponse =
+        getAccessTokenFromNestedAuthPayload(result);
+      const accessToken =
+        accessTokenFromResponse ?? (await refreshAccessToken(true));
+      const businessId = getBusinessIdFromAuthPayload(result, accessToken);
+
+      setAuthSession({
+        accessToken,
+        businessId,
+      });
+
+      try {
+        await fetchAuthenticatedBusiness();
+      } catch {
+        // Keep login successful even if business/me fails; navbar can use placeholder.
+      }
 
       return { ok: true, data: result };
     } catch (error) {
