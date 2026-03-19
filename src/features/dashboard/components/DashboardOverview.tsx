@@ -1,31 +1,44 @@
 interface DashboardOverviewProps {
   totalProducts: number;
   availableProducts: number;
-  unavailableProducts: number;
   promotedProducts: number;
-  productsWithoutPromotion: number;
   lowStockProducts: number;
   outOfStockProducts: number;
-  noStockControlProducts: number;
+  ordersToday: number;
+  operationalOrders: number;
+  cancelledOrders: number;
+  pendingPaymentOrders: number;
+  revenueInCents: number;
+  averageTicketInCents: number;
   onOpenProductModal: () => void;
   onOpenPromotionModal: () => void;
-  onRefreshProducts: () => void;
-  isRefreshingProducts: boolean;
+  onRefreshOverview: () => void;
+  isRefreshingOverview: boolean;
+}
+
+function formatBrl(amountInCents: number): string {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(amountInCents / 100);
 }
 
 export function DashboardOverview({
   totalProducts,
   availableProducts,
-  unavailableProducts,
   promotedProducts,
-  productsWithoutPromotion,
   lowStockProducts,
   outOfStockProducts,
-  noStockControlProducts,
+  ordersToday,
+  operationalOrders,
+  cancelledOrders,
+  pendingPaymentOrders,
+  revenueInCents,
+  averageTicketInCents,
   onOpenProductModal,
   onOpenPromotionModal,
-  onRefreshProducts,
-  isRefreshingProducts,
+  onRefreshOverview,
+  isRefreshingOverview,
 }: DashboardOverviewProps) {
   return (
     <article className="dashboard-panel" aria-label="Visão geral">
@@ -42,10 +55,10 @@ export function DashboardOverview({
           <button
             type="button"
             className="dashboard-secondary-button"
-            onClick={onRefreshProducts}
-            disabled={isRefreshingProducts}
+            onClick={onRefreshOverview}
+            disabled={isRefreshingOverview}
           >
-            {isRefreshingProducts ? "Atualizando..." : "Atualizar dados"}
+            {isRefreshingOverview ? "Atualizando..." : "Atualizar dados"}
           </button>
           <button
             type="button"
@@ -64,42 +77,84 @@ export function DashboardOverview({
         </div>
       </div>
 
-      <section className="dashboard-grid" aria-label="Indicadores principais">
-        <article className="dashboard-card">
-          <h2>Produtos cadastrados</h2>
-          <strong>{totalProducts}</strong>
-        </article>
-        <article className="dashboard-card">
-          <h2>Disponíveis</h2>
-          <strong>{availableProducts}</strong>
-        </article>
-        <article className="dashboard-card">
-          <h2>Indisponíveis</h2>
-          <strong>{unavailableProducts}</strong>
-        </article>
-        <article className="dashboard-card">
-          <h2>Promoções ativas</h2>
-          <strong>{promotedProducts}</strong>
-        </article>
+      <section className="overview-topic" aria-label="Tópico catálogo">
+        <header className="overview-topic-header">
+          <h3>Catálogo</h3>
+          <p>Resumo rápido do que está disponível para venda.</p>
+        </header>
+        <div className="dashboard-grid">
+          <article className="dashboard-card">
+            <h2>Produtos cadastrados</h2>
+            <strong>{totalProducts}</strong>
+          </article>
+          <article className="dashboard-card">
+            <h2>Disponíveis</h2>
+            <strong>{availableProducts}</strong>
+          </article>
+          <article className="dashboard-card">
+            <h2>Promoções ativas</h2>
+            <strong>{promotedProducts}</strong>
+          </article>
+        </div>
       </section>
 
-      <section className="status-grid" aria-label="Saúde do catálogo">
-        <article className="status-card">
-          <span>Sem promoção</span>
-          <strong>{productsWithoutPromotion}</strong>
-        </article>
-        <article className="status-card">
-          <span>Estoque baixo</span>
-          <strong>{lowStockProducts}</strong>
-        </article>
-        <article className="status-card">
-          <span>Sem estoque</span>
-          <strong>{outOfStockProducts}</strong>
-        </article>
-        <article className="status-card">
-          <span>Sem controle de estoque</span>
-          <strong>{noStockControlProducts}</strong>
-        </article>
+      <section className="overview-topic" aria-label="Tópico pedidos">
+        <header className="overview-topic-header">
+          <h3>Pedidos</h3>
+          <p>Pontos essenciais do fluxo operacional atual.</p>
+        </header>
+        <div className="dashboard-grid">
+          <article className="dashboard-card">
+            <h2>Pedidos hoje</h2>
+            <strong>{ordersToday}</strong>
+          </article>
+          <article className="dashboard-card">
+            <h2>Em operação</h2>
+            <strong>{operationalOrders}</strong>
+          </article>
+          <article className="dashboard-card">
+            <h2>Aguardando pagamento</h2>
+            <strong>{pendingPaymentOrders}</strong>
+          </article>
+        </div>
+      </section>
+
+      <section className="overview-topic" aria-label="Tópico financeiro">
+        <header className="overview-topic-header">
+          <h3>Financeiro</h3>
+          <p>Indicadores principais de faturamento e ticket.</p>
+        </header>
+        <div className="dashboard-grid">
+          <article className="dashboard-card">
+            <h2>Faturamento</h2>
+            <strong>{formatBrl(revenueInCents)}</strong>
+          </article>
+          <article className="dashboard-card">
+            <h2>Ticket médio</h2>
+            <strong>{formatBrl(averageTicketInCents)}</strong>
+          </article>
+        </div>
+      </section>
+
+      <section className="overview-topic" aria-label="Tópico alertas">
+        <header className="overview-topic-header">
+          <h3>Alertas</h3>
+          <p>Itens que merecem atenção imediata.</p>
+        </header>
+        <section className="status-grid" aria-label="Alertas de operação">
+          <article className="status-card">
+            <span>Sem estoque</span>
+            <strong>{outOfStockProducts}</strong>
+          </article>
+          <article className="status-card">
+            <span>Estoque baixo</span>
+            <strong>{lowStockProducts}</strong>
+          </article>
+          <article className="status-card">
+            <span>Cancelados</span>
+            <strong>{cancelledOrders}</strong>
+          </article>
+        </section>
       </section>
     </article>
   );

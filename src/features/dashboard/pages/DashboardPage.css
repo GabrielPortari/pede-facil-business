@@ -412,6 +412,26 @@
   justify-content: flex-start;
 }
 
+.overview-topic {
+  margin-top: 18px;
+}
+
+.overview-topic-header {
+  margin-bottom: 10px;
+}
+
+.overview-topic-header h3 {
+  margin: 0;
+  font-size: 0.98rem;
+  color: var(--pf-color-brand-900);
+}
+
+.overview-topic-header p {
+  margin: 6px 0 0;
+  color: var(--pf-color-secondary-700);
+  font-size: 0.9rem;
+}
+
 .dashboard-panel {
   min-width: 0;
   border: 1px solid var(--pf-color-border-soft);

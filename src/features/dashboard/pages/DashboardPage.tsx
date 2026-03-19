@@ -28,6 +28,39 @@ import {
 } from "../types/order.type";
 import "./DashboardPage.css";
 
+const OPERATIONAL_ORDER_STATUSES = new Set<OrderStatus>([
+  OrderStatus.PaymentPending,
+  OrderStatus.PaidAwaitingDelivery,
+  OrderStatus.CustomerDeclined,
+]);
+
+const CANCELLED_ORDER_STATUSES = new Set<OrderStatus>([
+  OrderStatus.CustomerCancelled,
+  OrderStatus.BusinessCancelled,
+]);
+
+function getTimestampInMs(value: {
+  _seconds?: number;
+  _nanoseconds?: number;
+}): number {
+  const seconds = value?._seconds;
+  const nanoseconds = value?._nanoseconds ?? 0;
+
+  if (typeof seconds !== "number" || !Number.isFinite(seconds)) {
+    return 0;
+  }
+
+  return seconds * 1000 + Math.floor(nanoseconds / 1000000);
+}
+
+function isSameCalendarDay(date: Date, targetDate: Date): boolean {
+  return (
+    date.getDate() === targetDate.getDate() &&
+    date.getMonth() === targetDate.getMonth() &&
+    date.getFullYear() === targetDate.getFullYear()
+  );
+}
+
 function formatPriceInput(rawValue: string): string {
   const digits = rawValue.replace(/\D/g, "");
 
@@ -295,6 +328,52 @@ export default function DashboardPage() {
       (product) => !product.useStock,
     ).length,
   };
+
+  const now = new Date();
+  const totalOrders = orders.length;
+  const ordersToday = orders.filter((order) => {
+    const timestampInMs = getTimestampInMs(order.createdAt);
+
+    return timestampInMs
+      ? isSameCalendarDay(new Date(timestampInMs), now)
+      : false;
+  }).length;
+  const operationalOrders = orders.filter((order) =>
+    OPERATIONAL_ORDER_STATUSES.has(order.status),
+  ).length;
+  const pendingPaymentOrders = orders.filter(
+    (order) => order.status === OrderStatus.PaymentPending,
+  ).length;
+  const cancelledOrders = orders.filter((order) =>
+    CANCELLED_ORDER_STATUSES.has(order.status),
+  ).length;
+  const finalizedOrders = orders.filter(
+    (order) => order.status === OrderStatus.CustomerConfirmed,
+  ).length;
+  const revenueOrders = orders.filter(
+    (order) =>
+      order.status !== OrderStatus.PaymentPending &&
+      !CANCELLED_ORDER_STATUSES.has(order.status),
+  );
+  const revenueInCents = revenueOrders.reduce(
+    (total, order) => total + order.totalPrice.amount,
+    0,
+  );
+  const averageTicketInCents = revenueOrders.length
+    ? Math.round(revenueInCents / revenueOrders.length)
+    : 0;
+
+  const orderOverviewStats = {
+    totalOrders,
+    ordersToday,
+    operationalOrders,
+    finalizedOrders,
+    cancelledOrders,
+    pendingPaymentOrders,
+    revenueInCents,
+    averageTicketInCents,
+  };
+
   const isEditingProduct = Boolean(editingProductId);
 
   const parsedPrice = parsePriceToCents(price);
@@ -747,6 +826,7 @@ export default function DashboardPage() {
           setOrderLimit(normalizedValue);
         }}
         overviewStats={overviewStats}
+        orderOverviewStats={orderOverviewStats}
       />
 
       <ProductModal

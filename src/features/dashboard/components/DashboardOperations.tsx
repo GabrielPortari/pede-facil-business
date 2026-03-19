@@ -134,12 +134,17 @@ interface DashboardOperationsProps {
   overviewStats: {
     totalProducts: number;
     availableProducts: number;
-    unavailableProducts: number;
     promotedProducts: number;
-    productsWithoutPromotion: number;
     lowStockProducts: number;
     outOfStockProducts: number;
-    noStockControlProducts: number;
+  };
+  orderOverviewStats: {
+    ordersToday: number;
+    operationalOrders: number;
+    cancelledOrders: number;
+    pendingPaymentOrders: number;
+    revenueInCents: number;
+    averageTicketInCents: number;
   };
 }
 
@@ -184,6 +189,7 @@ export function DashboardOperations({
   orderLimit,
   onOrderLimitChange,
   overviewStats,
+  orderOverviewStats,
 }: DashboardOperationsProps) {
   const [activeTab, setActiveTab] = useState<OperationMenuKey>("overview");
   const baseOperationalOrders = [...orders]
@@ -257,16 +263,29 @@ export function DashboardOperations({
           <DashboardOverview
             totalProducts={overviewStats.totalProducts}
             availableProducts={overviewStats.availableProducts}
-            unavailableProducts={overviewStats.unavailableProducts}
             promotedProducts={overviewStats.promotedProducts}
-            productsWithoutPromotion={overviewStats.productsWithoutPromotion}
             lowStockProducts={overviewStats.lowStockProducts}
             outOfStockProducts={overviewStats.outOfStockProducts}
-            noStockControlProducts={overviewStats.noStockControlProducts}
+            ordersToday={orderOverviewStats.ordersToday}
+            operationalOrders={orderOverviewStats.operationalOrders}
+            cancelledOrders={orderOverviewStats.cancelledOrders}
+            pendingPaymentOrders={orderOverviewStats.pendingPaymentOrders}
+            revenueInCents={orderOverviewStats.revenueInCents}
+            averageTicketInCents={orderOverviewStats.averageTicketInCents}
             onOpenProductModal={onOpenProductModal}
             onOpenPromotionModal={onOpenPromotionModal}
-            onRefreshProducts={onReloadProducts}
-            isRefreshingProducts={isProductsLoading}
+            onRefreshOverview={() => {
+              onReloadProducts();
+              onReloadPromotedProducts();
+              onReloadProductsWithoutPromotion();
+              onReloadOrders();
+            }}
+            isRefreshingOverview={
+              isProductsLoading ||
+              isPromotionsLoading ||
+              isProductsWithoutPromotionLoading ||
+              isOrdersLoading
+            }
           />
         ) : null}
 
