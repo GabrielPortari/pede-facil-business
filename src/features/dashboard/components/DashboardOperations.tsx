@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { DashboardOverview } from "./DashboardOverview";
 import { OrdersPanel } from "./OrdersPanel";
 import { OrderStatus } from "../types/order.type";
@@ -193,6 +193,37 @@ export function DashboardOperations({
   orderOverviewStats,
 }: DashboardOperationsProps) {
   const [activeTab, setActiveTab] = useState<OperationMenuKey>("overview");
+
+  const financialStatusBreakdown = useMemo(() => {
+    const CANCELLED_STATUSES = new Set([
+      OrderStatus.CustomerCancelled,
+      OrderStatus.BusinessCancelled,
+    ]);
+    const breakdown = new Map<OrderStatus, { count: number; sum: number }>();
+    let paidOrderCount = 0;
+
+    for (const order of orders) {
+      const entry = breakdown.get(order.status) ?? { count: 0, sum: 0 };
+      entry.count += 1;
+      entry.sum += order.totalPrice.amount;
+      breakdown.set(order.status, entry);
+
+      if (
+        order.status !== OrderStatus.PaymentPending &&
+        !CANCELLED_STATUSES.has(order.status)
+      ) {
+        paidOrderCount += 1;
+      }
+    }
+
+    const getStatusCount = (status: OrderStatus) =>
+      breakdown.get(status)?.count ?? 0;
+    const getStatusSum = (status: OrderStatus) =>
+      breakdown.get(status)?.sum ?? 0;
+
+    return { getStatusCount, getStatusSum, paidOrderCount };
+  }, [orders]);
+
   const baseOperationalOrders = [...orders]
     .filter((order) => OPERATIONAL_ORDER_STATUS_SET.has(order.status))
     .sort((firstOrder, secondOrder) => {
@@ -351,16 +382,7 @@ export function DashboardOperations({
                       {formatPrice(orderOverviewStats.revenueInCents)}
                     </strong>
                     <p className="financial-card-note">
-                      {
-                        orders.filter(
-                          (o) =>
-                            o.status !== OrderStatus.PaymentPending &&
-                            ![
-                              OrderStatus.CustomerCancelled,
-                              OrderStatus.BusinessCancelled,
-                            ].includes(o.status),
-                        ).length
-                      }{" "}
+                      {financialStatusBreakdown.paidOrderCount}{" "}
                       pedidos
                     </p>
                   </article>
@@ -391,20 +413,12 @@ export function DashboardOperations({
                       <header className="financial-status-header">
                         <h4>Pagamento pendente</h4>
                         <span className="financial-status-count">
-                          {
-                            orders.filter(
-                              (o) => o.status === OrderStatus.PaymentPending,
-                            ).length
-                          }
+                          {financialStatusBreakdown.getStatusCount(OrderStatus.PaymentPending)}
                         </span>
                       </header>
                       <p className="financial-status-amount">
                         {formatPrice(
-                          orders
-                            .filter(
-                              (o) => o.status === OrderStatus.PaymentPending,
-                            )
-                            .reduce((sum, o) => sum + o.totalPrice.amount, 0),
+                          financialStatusBreakdown.getStatusSum(OrderStatus.PaymentPending),
                         )}
                       </p>
                       <p className="financial-status-note">À receber</p>
@@ -414,22 +428,12 @@ export function DashboardOperations({
                       <header className="financial-status-header">
                         <h4>Pago, aguardando entrega</h4>
                         <span className="financial-status-count">
-                          {
-                            orders.filter(
-                              (o) =>
-                                o.status === OrderStatus.PaidAwaitingDelivery,
-                            ).length
-                          }
+                          {financialStatusBreakdown.getStatusCount(OrderStatus.PaidAwaitingDelivery)}
                         </span>
                       </header>
                       <p className="financial-status-amount">
                         {formatPrice(
-                          orders
-                            .filter(
-                              (o) =>
-                                o.status === OrderStatus.PaidAwaitingDelivery,
-                            )
-                            .reduce((sum, o) => sum + o.totalPrice.amount, 0),
+                          financialStatusBreakdown.getStatusSum(OrderStatus.PaidAwaitingDelivery),
                         )}
                       </p>
                       <p className="financial-status-note">Entrega pendente</p>
@@ -439,18 +443,12 @@ export function DashboardOperations({
                       <header className="financial-status-header">
                         <h4>Entregue</h4>
                         <span className="financial-status-count">
-                          {
-                            orders.filter(
-                              (o) => o.status === OrderStatus.Delivered,
-                            ).length
-                          }
+                          {financialStatusBreakdown.getStatusCount(OrderStatus.Delivered)}
                         </span>
                       </header>
                       <p className="financial-status-amount">
                         {formatPrice(
-                          orders
-                            .filter((o) => o.status === OrderStatus.Delivered)
-                            .reduce((sum, o) => sum + o.totalPrice.amount, 0),
+                          financialStatusBreakdown.getStatusSum(OrderStatus.Delivered),
                         )}
                       </p>
                       <p className="financial-status-note">
@@ -462,20 +460,12 @@ export function DashboardOperations({
                       <header className="financial-status-header">
                         <h4>Confirmado</h4>
                         <span className="financial-status-count">
-                          {
-                            orders.filter(
-                              (o) => o.status === OrderStatus.CustomerConfirmed,
-                            ).length
-                          }
+                          {financialStatusBreakdown.getStatusCount(OrderStatus.CustomerConfirmed)}
                         </span>
                       </header>
                       <p className="financial-status-amount">
                         {formatPrice(
-                          orders
-                            .filter(
-                              (o) => o.status === OrderStatus.CustomerConfirmed,
-                            )
-                            .reduce((sum, o) => sum + o.totalPrice.amount, 0),
+                          financialStatusBreakdown.getStatusSum(OrderStatus.CustomerConfirmed),
                         )}
                       </p>
                       <p className="financial-status-note">
@@ -487,20 +477,12 @@ export function DashboardOperations({
                       <header className="financial-status-header">
                         <h4>Cliente não recebeu</h4>
                         <span className="financial-status-count">
-                          {
-                            orders.filter(
-                              (o) => o.status === OrderStatus.CustomerDeclined,
-                            ).length
-                          }
+                          {financialStatusBreakdown.getStatusCount(OrderStatus.CustomerDeclined)}
                         </span>
                       </header>
                       <p className="financial-status-amount">
                         {formatPrice(
-                          orders
-                            .filter(
-                              (o) => o.status === OrderStatus.CustomerDeclined,
-                            )
-                            .reduce((sum, o) => sum + o.totalPrice.amount, 0),
+                          financialStatusBreakdown.getStatusSum(OrderStatus.CustomerDeclined),
                         )}
                       </p>
                       <p className="financial-status-note">Em litígio</p>
@@ -510,24 +492,14 @@ export function DashboardOperations({
                       <header className="financial-status-header">
                         <h4>Cancelados</h4>
                         <span className="financial-status-count">
-                          {
-                            orders.filter(
-                              (o) =>
-                                o.status === OrderStatus.CustomerCancelled ||
-                                o.status === OrderStatus.BusinessCancelled,
-                            ).length
-                          }
+                          {financialStatusBreakdown.getStatusCount(OrderStatus.CustomerCancelled) +
+                            financialStatusBreakdown.getStatusCount(OrderStatus.BusinessCancelled)}
                         </span>
                       </header>
                       <p className="financial-status-amount">
                         {formatPrice(
-                          orders
-                            .filter(
-                              (o) =>
-                                o.status === OrderStatus.CustomerCancelled ||
-                                o.status === OrderStatus.BusinessCancelled,
-                            )
-                            .reduce((sum, o) => sum + o.totalPrice.amount, 0),
+                          financialStatusBreakdown.getStatusSum(OrderStatus.CustomerCancelled) +
+                            financialStatusBreakdown.getStatusSum(OrderStatus.BusinessCancelled),
                         )}
                       </p>
                       <p className="financial-status-note">Sem receita</p>
