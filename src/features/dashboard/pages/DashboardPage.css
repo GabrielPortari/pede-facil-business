@@ -1161,6 +1161,130 @@
   background: rgba(var(--pf-rgb-white), 1);
 }
 
+.financial-summary {
+  margin-top: 16px;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.financial-card {
+  border: 1px solid var(--pf-color-border-soft);
+  border-radius: 12px;
+  padding: 16px;
+  background: rgba(var(--pf-rgb-white), 0.98);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.financial-card h3 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--pf-color-secondary-700);
+}
+
+.financial-value-primary {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--pf-color-brand-900);
+}
+
+.financial-value-secondary {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--pf-color-brand-700);
+}
+
+.financial-card-note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--pf-color-secondary-700);
+}
+
+.financial-breakdown {
+  margin-top: 20px;
+}
+
+.financial-breakdown h3 {
+  margin: 0 0 12px;
+  font-size: 0.98rem;
+  color: var(--pf-color-brand-900);
+}
+
+.financial-status-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.financial-status-card {
+  border: 1px solid var(--pf-color-border-soft);
+  border-radius: 12px;
+  padding: 14px;
+  background: rgba(var(--pf-rgb-white), 0.98);
+}
+
+.financial-status-card-decline {
+  border-color: rgba(249, 115, 22, 0.3);
+  background: rgba(254, 243, 235, 0.96);
+}
+
+.financial-status-card-cancel {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(254, 242, 242, 0.96);
+}
+
+.financial-status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.financial-status-header h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--pf-color-text-primary);
+  flex: 1;
+}
+
+.financial-status-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pf-color-brand-700);
+  font-weight: 700;
+  padding: 2px 8px;
+  background: rgba(var(--pf-rgb-brand-900), 0.08);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.financial-status-amount {
+  margin: 0 0 6px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--pf-color-brand-900);
+  font-variant-numeric: tabular-nums;
+}
+
+.financial-status-note {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--pf-color-secondary-700);
+}
+
+.financial-status-card-decline .financial-status-amount {
+  color: #ea580c;
+}
+
+.financial-status-card-cancel .financial-status-amount {
+  color: #dc2626;
+}
+
 @media (max-width: 768px) {
   .dashboard-page {
     box-sizing: border-box;

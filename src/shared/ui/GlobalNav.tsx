@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   clearStoredAuthSession,
   getLoggedBusinessId,
+  getLoggedBusinessName,
   isAuthenticatedSession,
 } from "../state/authSession";
 import "./GlobalNav.css";
@@ -10,7 +11,7 @@ import "./GlobalNav.css";
 const NAV_ITEMS = [
   { id: "inicio", label: "Inicio" },
   { id: "quem-somos", label: "Quem somos" },
-  { id: "beneficios", label: "Beneficios" },
+  { id: "beneficios", label: "Benefícios" },
   { id: "como-funciona", label: "Como funciona" },
   { id: "resultados", label: "Resultados" },
   { id: "comecar", label: "Começar" },
@@ -41,12 +42,7 @@ export default function GlobalNav() {
   const hasAuthenticatedSession = isAuthenticatedSession();
   const hasLoggedAccount = Boolean(loggedBusinessId || hasAuthenticatedSession);
   const profileImageUrl: string | null = null;
-  const storedBusinessName =
-    localStorage.getItem("business_name")?.trim() ||
-    localStorage.getItem("company_name")?.trim() ||
-    localStorage.getItem("companyName")?.trim() ||
-    null;
-  const businessDisplayName = storedBusinessName || "business_name";
+  const businessDisplayName = getLoggedBusinessName() || "Meu negócio";
   const currentActiveSection =
     location.pathname === "/" && location.hash
       ? location.hash.replace("#", "")
@@ -153,7 +149,7 @@ export default function GlobalNav() {
   return (
     <header className="global-nav-wrapper">
       <div className="global-nav-shell">
-        <nav className="global-nav" aria-label="Navegacao principal">
+        <nav className="global-nav" aria-label="Navegação principal">
           {NAV_ITEMS.map((item) => {
             const isActive =
               location.pathname === "/" && currentActiveSection === item.id;

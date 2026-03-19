@@ -14,6 +14,8 @@ if (!rootElement) {
 const rootContainer = rootElement;
 
 async function bootstrapApp() {
+  // Initialize auth session before rendering to avoid premature redirects
+  // on protected routes while a refresh is in progress.
   await initializeAuthSession();
 
   createRoot(rootContainer).render(
@@ -25,4 +27,4 @@ async function bootstrapApp() {
   );
 }
 
-void bootstrapApp();
+bootstrapApp();

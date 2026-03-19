@@ -20,10 +20,14 @@ export function useAuthenticatedProfile(): UseAuthenticatedProfileResult {
       setErrorMessage("");
 
       const nextProfile = await getAuthenticatedBusinessProfile();
-      console.info(
-        "[useAuthenticatedProfile] business/me response",
-        nextProfile.raw,
-      );
+
+      if (import.meta.env.DEV) {
+        console.info(
+          "[useAuthenticatedProfile] business/me response",
+          nextProfile.raw,
+        );
+      }
+
       setProfile(nextProfile);
     } catch (error) {
       console.error("[useAuthenticatedProfile] Failed to load business/me", {

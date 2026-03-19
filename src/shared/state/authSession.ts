@@ -212,6 +212,15 @@ export function stopAutoRefreshSession(): void {
   }
 
   clearAutoRefreshTimeout();
+
+  if (isAutoRefreshInitialized) {
+    document.removeEventListener(
+      "visibilitychange",
+      handleSessionVisibilityRefresh,
+    );
+    window.removeEventListener("focus", handleSessionFocusRefresh);
+    isAutoRefreshInitialized = false;
+  }
 }
 
 export function getAccessTokenFromAuthPayload(value: unknown): string | null {
